@@ -189,6 +189,12 @@ const P = {
       <path d="M21 3.5V9h-5.5" />
     </>
   ),
+  copy: (
+    <>
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5.5 14.5H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 2 2v.5" />
+    </>
+  ),
   sliders: (
     <>
       <path d="M4 7h9M17 7h3M4 17h3M11 17h9M4 12h13" />
