@@ -1,0 +1,300 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Alexandria", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", "Alexandria", system-ui, sans-serif;
+  --font-mono: "Space Grotesk", "Alexandria", monospace;
+
+  --color-paper: #f3f5f0;
+  --color-card: #fcfdfb;
+  --color-line: #e2e6dd;
+
+  --color-ink-950: #071a14;
+  --color-ink-900: #0b241c;
+  --color-ink-800: #123227;
+  --color-ink-700: #1b4737;
+  --color-ink-600: #2c5f4b;
+  --color-ink-500: #467c66;
+  --color-ink-400: #6e9784;
+  --color-ink-300: #97b5a6;
+  --color-ink-200: #c2d4ca;
+  --color-ink-100: #e0e8e1;
+  --color-ink-50: #eef2ed;
+
+  --color-brand: #0e6e55;
+  --color-brand-deep: #0a5240;
+  --color-brand-soft: #d9eae2;
+
+  --color-gold: #e19b10;
+  --color-gold-deep: #996a05;
+  --color-gold-soft: #f8ecd0;
+
+  --color-coral: #de5537;
+  --color-coral-soft: #f8e1d9;
+
+  --color-sea: #16708e;
+  --color-sea-soft: #daeaf1;
+
+  --color-olive: #7c8b3a;
+  --color-olive-soft: #e9edd6;
+}
+
+html {
+  font-family: var(--font-body);
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-paper);
+  color: var(--color-ink-900);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* خلفية محيطية متعددة الطبقات: توهّجات + شبكة رسم هندسي */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(950px 500px at 92% -8%, rgba(225, 155, 16, 0.12), transparent 62%),
+    radial-gradient(850px 520px at -6% 106%, rgba(14, 110, 85, 0.13), transparent 60%),
+    linear-gradient(rgba(11, 36, 28, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 36, 28, 0.035) 1px, transparent 1px);
+  background-size: auto, auto, 36px 36px, 36px 36px;
+}
+
+/* حُبيبات فوق كل شيء */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+}
+
+#root {
+  position: relative;
+  z-index: 2;
+}
+
+/* ====== الحركات ====== */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes line-mask {
+  from {
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(16px);
+  }
+  to {
+    clip-path: inset(-12% 0 -12% 0);
+    transform: none;
+  }
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.rise {
+  animation: rise 0.55s cubic-bezier(0.22, 0.9, 0.32, 1) both;
+}
+.pop {
+  animation: pop 0.32s cubic-bezier(0.22, 0.9, 0.32, 1) both;
+}
+.toast-in {
+  animation: toast-in 0.35s cubic-bezier(0.22, 0.9, 0.32, 1) both;
+}
+.grow-x {
+  animation: grow-x 0.9s cubic-bezier(0.22, 0.9, 0.32, 1) both;
+  transform-origin: right center;
+}
+.grow-y {
+  animation: grow-y 0.8s cubic-bezier(0.22, 0.9, 0.32, 1) both;
+  transform-origin: center bottom;
+}
+.line-mask {
+  display: inline-block;
+  animation: line-mask 0.65s cubic-bezier(0.7, 0, 0.2, 1) both;
+}
+
+.marquee {
+  overflow: hidden;
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+}
+.marquee:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+.pulse-dot {
+  position: relative;
+}
+.pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: pulse-ring 1.9s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.caret {
+  animation: blink 1s step-end infinite;
+}
+
+.btn-press {
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background-color 0.2s ease,
+    border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
+}
+.btn-press:active {
+  transform: scale(0.96);
+}
+
+/* ====== عناصر أساسية ====== */
+.inp {
+  width: 100%;
+  background: var(--color-card);
+  border: 1.5px solid var(--color-line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  font-family: var(--font-body);
+  color: var(--color-ink-900);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.inp:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px rgba(14, 110, 85, 0.16);
+}
+.inp::placeholder {
+  color: var(--color-ink-300);
+}
+textarea.inp {
+  resize: vertical;
+  line-height: 1.9;
+}
+
+.lbl {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-ink-700);
+  margin-bottom: 6px;
+}
+
+::selection {
+  background: var(--color-gold);
+  color: var(--color-ink-950);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink-200) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-200);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .marquee-track {
+    animation: none !important;
+  }
+}
