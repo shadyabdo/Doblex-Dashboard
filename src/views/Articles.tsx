@@ -157,6 +157,15 @@ export default function Articles({ go }: { go: (v: View) => void }) {
                       </span>
                     </div>
                   </div>
+                  {a.cover && (
+                    <div className="hidden shrink-0 self-center overflow-hidden rounded-xl border border-line sm:block">
+                      <img
+                        src={a.cover}
+                        alt=""
+                        className="h-24 w-32 object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    </div>
+                  )}
                 </div>
                 {/* أزرار سريعة */}
                 <div className="absolute top-4 end-4 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100" onClick={(e) => e.stopPropagation()}>
@@ -208,6 +217,13 @@ export default function Articles({ go }: { go: (v: View) => void }) {
                 <I n="x" className="h-4 w-4" />
               </button>
             </div>
+            {reading.cover && (
+              <img
+                src={reading.cover}
+                alt=""
+                className="mt-6 max-h-72 w-full rounded-xl border border-line object-cover"
+              />
+            )}
             <div className="mt-6 space-y-4 border-t border-dashed border-line pt-6">
               {reading.body.split("\n").filter(Boolean).map((p, i) => (
                 <p key={i} className="text-[15px] leading-9 text-ink-700">

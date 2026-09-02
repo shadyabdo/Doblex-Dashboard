@@ -337,20 +337,23 @@ export function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-/* منطقة رفع بالسحب والإفلات */
+/* منطقة رفع بالسحب والإفلات — تتحول تلقائيًا لروابط مباشرة */
 export function Dropzone({
   onFiles,
   label,
   sub,
+  busy = false,
 }: {
   onFiles: (files: File[]) => void;
   label: string;
   sub?: string;
+  busy?: boolean;
 }) {
   const [over, setOver] = useState(false);
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
     setOver(false);
+    if (busy) return;
     const imgs = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
     if (imgs.length) onFiles(imgs);
   };
@@ -358,35 +361,59 @@ export function Dropzone({
     <label
       onDragOver={(e) => {
         e.preventDefault();
-        setOver(true);
+        if (!busy) setOver(true);
       }}
       onDragLeave={() => setOver(false)}
       onDrop={onDrop}
       className={`group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-all duration-200 ${
-        over ? "border-brand bg-brand-soft/50 scale-[1.01]" : "border-ink-200 bg-ink-50/40 hover:border-brand/60 hover:bg-brand-soft/25"
+        busy ? "pointer-events-none opacity-80" : ""
+      } ${
+        over
+          ? "border-brand bg-brand-soft/50 scale-[1.01]"
+          : busy
+            ? "border-gold/60 bg-gold-soft/40"
+            : "border-ink-200 bg-ink-50/40 hover:border-brand/60 hover:bg-brand-soft/25"
       }`}
     >
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        onChange={(e) => {
-          const files = e.target.files ? Array.from(e.target.files) : [];
-          if (files.length) onFiles(files);
-          e.target.value = "";
-        }}
-      />
-      <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-card text-brand shadow-sm transition-transform duration-300 group-hover:-translate-y-1">
-        <I n="upload" className="h-5 w-5" />
-      </span>
-      <span className="mt-3 font-display text-sm font-bold text-ink-700">{label}</span>
-      <span className="mt-1 text-[11px] text-ink-400">{sub ?? "اسحب الصور هنا أو اضغط للاختيار"}</span>
+      {busy ? (
+        <>
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-card text-brand shadow-sm">
+            <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand/30 border-t-brand" />
+          </span>
+          <span className="mt-3 font-display text-sm font-bold text-brand-deep">جارٍ الرفع للسحابة…</span>
+          <span className="mt-1 text-[11px] text-ink-400">الصورة بتتحول لرابط مباشر</span>
+        </>
+      ) : (
+        <>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              const files = e.target.files ? Array.from(e.target.files) : [];
+              if (files.length) onFiles(files);
+              e.target.value = "";
+            }}
+          />
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-card text-brand shadow-sm transition-transform duration-300 group-hover:-translate-y-1">
+            <I n="upload" className="h-5 w-5" />
+          </span>
+          <span className="mt-3 font-display text-sm font-bold text-ink-700">{label}</span>
+          <span className="mt-1 flex items-center gap-1.5 text-[11px] text-ink-400">
+            {sub ?? "اسحب الصور هنا أو اضغط للاختيار"}
+            <span className="flex items-center gap-1 rounded-md bg-brand-soft px-1.5 py-0.5 text-[9px] font-bold text-brand-deep">
+              <I n="link" className="h-2.5 w-2.5" />
+              يتحول لرابط مباشر
+            </span>
+          </span>
+        </>
+      )}
     </label>
   );
 }
 
-/* مصغّرة صورة مع زر حذف */
+/* مصغّرة صورة مع نسخ الرابط المباشر وزر حذف */
 export function Thumb({
   src,
   onRemove,
@@ -396,17 +423,42 @@ export function Thumb({
   onRemove: () => void;
   className?: string;
 }) {
+  const { toast } = useStore();
+  const remote = /^https?:\/\//i.test(src);
   return (
     <div className={`group relative overflow-hidden rounded-xl border border-ink-100 bg-ink-50 ${className}`}>
       <img src={src} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      <button
-        type="button"
-        onClick={onRemove}
-        aria-label="حذف الصورة"
-        className="btn-press absolute top-2 end-2 flex h-7 w-7 items-center justify-center rounded-lg bg-ink-950/70 text-card opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-coral group-hover:opacity-100"
-      >
-        <I n="x" className="h-3.5 w-3.5" />
-      </button>
+      {remote && (
+        <span className="absolute top-1.5 start-1.5 flex items-center gap-1 rounded-md bg-ink-950/70 px-1.5 py-0.5 text-[9px] font-bold text-card backdrop-blur-sm">
+          <I n="link" className="h-2.5 w-2.5" />
+          رابط مباشر
+        </span>
+      )}
+      <div className="absolute inset-x-0 bottom-0 flex justify-end gap-1.5 bg-gradient-to-t from-ink-950/70 to-transparent p-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        {remote && (
+          <button
+            type="button"
+            aria-label="نسخ رابط الصورة"
+            onClick={() => {
+              navigator.clipboard
+                ?.writeText(src)
+                .then(() => toast("تم نسخ رابط الصورة"))
+                .catch(() => toast("تعذّر النسخ", "error"));
+            }}
+            className="btn-press flex h-7 w-7 items-center justify-center rounded-lg bg-card/90 text-ink-700 backdrop-blur-sm transition-colors hover:bg-gold-soft hover:text-gold-deep"
+          >
+            <I n="copy" className="h-3.5 w-3.5" />
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="حذف الصورة"
+          className="btn-press flex h-7 w-7 items-center justify-center rounded-lg bg-card/90 text-ink-700 backdrop-blur-sm transition-colors hover:bg-coral hover:text-card"
+        >
+          <I n="x" className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </div>
   );
 }

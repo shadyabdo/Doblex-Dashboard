@@ -66,6 +66,7 @@ export interface Article {
   fieldLabel: string;
   excerpt: string;
   body: string;
+  cover: string;
   published: boolean;
   readMins: number;
   createdAt: number;

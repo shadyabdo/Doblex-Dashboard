@@ -1,7 +1,8 @@
 import { useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import { useStore } from "../store";
 import { I, type IconName } from "../icons";
-import { Dropzone, Overline, Thumb, Ticks, fileToDataUrl } from "../components/ui";
+import { Dropzone, Overline, Thumb, Ticks } from "../components/ui";
+import { useUploader } from "../upload";
 import type { Achievement, Goal, ProjectImage, ProjectStatus, View } from "../types";
 
 const gid = () => Math.random().toString(36).slice(2, 10);
@@ -63,14 +64,16 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
   const [achText, setAchText] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const onCoverFiles = (files: File[]) => {
-    if (files[0]) void fileToDataUrl(files[0]).then(setCover);
+  const { busy: uploading, run } = useUploader();
+
+  const onCoverFiles = async (files: File[]) => {
+    const urls = await run(files.slice(0, 1));
+    if (urls[0]) setCover(urls[0]);
   };
 
-  const onGalleryFiles = (files: File[]) => {
-    void Promise.all(files.map(fileToDataUrl)).then((urls) =>
-      setImages((prev) => [...prev, ...urls.map((src) => ({ id: gid(), src }))])
-    );
+  const onGalleryFiles = async (files: File[]) => {
+    const urls = await run(files);
+    if (urls.length) setImages((prev) => [...prev, ...urls.map((src) => ({ id: gid(), src }))]);
   };
 
   const addGoal = () => {
@@ -252,7 +255,7 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
         <div className="grid gap-5 lg:grid-cols-2">
           <div>
             <span className="lbl">صورة الغلاف</span>
-            <Dropzone onFiles={onCoverFiles} label="ارفع صورة الغلاف" />
+            <Dropzone onFiles={onCoverFiles} label="ارفع صورة الغلاف" busy={uploading} />
             <div className="mt-3 flex gap-2">
               <div className="relative flex-1">
                 <I n="link" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
@@ -294,7 +297,7 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
         </div>
         <div className="mt-6">
           <span className="lbl">معرض صور المشروع ({images.length})</span>
-          <Dropzone onFiles={onGalleryFiles} label="أضف صورًا متعددة للمشروع" sub="يمكن اختيار أكثر من صورة دفعة واحدة" />
+          <Dropzone onFiles={onGalleryFiles} label="أضف صورًا متعددة للمشروع" sub="يمكن اختيار أكثر من صورة دفعة واحدة" busy={uploading} />
           {images.length > 0 && (
             <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               {images.map((im) => (

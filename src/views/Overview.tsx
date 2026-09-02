@@ -385,8 +385,12 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
                   onClick={() => go({ name: "articles" })}
                   className="group flex w-full items-start gap-3 py-3.5 text-start"
                 >
-                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ink-50 text-ink-400 transition-colors group-hover:bg-gold-soft group-hover:text-gold-deep">
-                    <I n="doc" className="h-4 w-4" />
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-ink-50 text-ink-400 transition-colors group-hover:bg-gold-soft group-hover:text-gold-deep">
+                    {a.cover ? (
+                      <img src={a.cover} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      <I n="doc" className="h-4 w-4" />
+                    )}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-display text-[13px] font-bold text-ink-800 transition-colors group-hover:text-brand">

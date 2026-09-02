@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useStore } from "../store";
 import { I } from "../icons";
-import { ChipInput, Overline, Switch, Ticks } from "../components/ui";
+import { ChipInput, Dropzone, Overline, Switch, Thumb, Ticks } from "../components/ui";
+import { useUploader } from "../upload";
 import type { View } from "../types";
 
 export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => void }) {
@@ -13,8 +14,16 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
   const [fieldLabel, setFieldLabel] = useState(editing?.fieldLabel ?? "");
   const [excerpt, setExcerpt] = useState(editing?.excerpt ?? "");
   const [body, setBody] = useState(editing?.body ?? "");
+  const [cover, setCover] = useState(editing?.cover ?? "");
+  const [coverUrl, setCoverUrl] = useState("");
   const [published, setPublished] = useState(editing?.published ?? true);
   const [saving, setSaving] = useState(false);
+  const { busy: uploading, run } = useUploader();
+
+  const onCoverFiles = async (files: File[]) => {
+    const urls = await run(files.slice(0, 1));
+    if (urls[0]) setCover(urls[0]);
+  };
 
   const save = (e: FormEvent) => {
     e.preventDefault();
@@ -37,6 +46,7 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
       fieldLabel,
       excerpt: excerpt.trim(),
       body: body.trim(),
+      cover,
       published,
     };
     window.setTimeout(() => {
@@ -101,6 +111,46 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
           <section className="relative rounded-xl border border-line bg-card p-5 shadow-sm">
             <Ticks className="text-ink-200" />
             <div className="space-y-5">
+              <div>
+                <span className="lbl">صورة المقال</span>
+                {cover ? (
+                  <Thumb src={cover} onRemove={() => setCover("")} className="h-36" />
+                ) : (
+                  <Dropzone onFiles={onCoverFiles} label="ارفع صورة المقال" sub="ستتحول لرابط مباشر تلقائيًا" busy={uploading} />
+                )}
+                {cover && (
+                  <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-ink-400">
+                    <I n="link" className="h-3 w-3 text-brand" />
+                    {/^https?:\/\//i.test(cover) ? "مخزّنة كرابط مباشر — جاهزة للمزامنة" : "محفوظة محليًا"}
+                  </p>
+                )}
+                {!cover && (
+                  <div className="mt-2.5 flex gap-2">
+                    <div className="relative flex-1">
+                      <I n="link" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
+                      <input
+                        className="inp !ps-10"
+                        placeholder="أو الصق رابط صورة…"
+                        value={coverUrl}
+                        onChange={(e) => setCoverUrl(e.target.value)}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (coverUrl.trim()) {
+                          setCover(coverUrl.trim());
+                          setCoverUrl("");
+                          toast("تم تعيين صورة المقال");
+                        }
+                      }}
+                      className="btn-press rounded-xl bg-ink-900 px-4 text-xs font-bold text-card hover:bg-ink-700"
+                    >
+                      تعيين
+                    </button>
+                  </div>
+                )}
+              </div>
               <div>
                 <span className="lbl">الكلمات المفتاحية *</span>
                 <ChipInput value={keywords} onChange={setKeywords} placeholder="اكتب كلمة ثم Enter" />
