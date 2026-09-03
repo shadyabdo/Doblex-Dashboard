@@ -10,6 +10,7 @@ import Articles from "./views/Articles";
 import ArticleForm from "./views/ArticleForm";
 import { I } from "./icons";
 import {
+  DEFAULT_CONFIG,
   DOC_PATH,
   isValidConfig,
   loadStoredConfig,
@@ -141,7 +142,7 @@ function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { sync, connectFirebase, disconnectFirebase, toast } = useStore();
   const [raw, setRaw] = useState(() => {
     const c = loadStoredConfig();
-    return c ? JSON.stringify(c, null, 2) : "";
+    return JSON.stringify(c ?? DEFAULT_CONFIG, null, 2);
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -199,8 +200,12 @@ function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
         </div>
 
         <p className="mt-3 text-sm leading-7 text-ink-500">
-          الصق إعدادات تطبيق الويب من وحدة تحكم فايربيز، وستُحفظ بيانات الداشبورد (المجالات،
-          المشاريع، المقالات) في Firestore ليتشاركها كل أعضاء الفريق لحظيًا.
+          الداشبورد متصلة مسبقًا بمشروع
+          <code dir="ltr" className="mx-1 rounded bg-ink-50 px-1.5 py-0.5 font-mono text-[11px] font-bold text-brand-deep">
+            dublex-26
+          </code>
+          وستُحفظ بياناتك (المجالات، المشاريع، المقالات) في Firestore لتُشارك لحظيًا مع
+          كل أعضاء الفريق. يمكنك تغيير الإعدادات من هنا إن أردت.
         </p>
 
         <div className="mt-4 flex items-center gap-2 rounded-xl bg-ink-50/70 px-4 py-2.5">

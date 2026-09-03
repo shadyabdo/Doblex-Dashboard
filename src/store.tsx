@@ -13,10 +13,11 @@ import {
   clearStoredConfig,
   dbRef,
   fbMessage,
+  getEffectiveConfig,
   initFirebase,
-  isValidConfig,
-  loadStoredConfig,
+  isAutoConnectDisabled,
   saveStoredConfig,
+  setAutoConnectDisabled,
   type FirebaseConfig,
 } from "./firebase";
 
@@ -75,10 +76,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   });
 
   const [sync, setSync] = useState<SyncState>(() => {
-    const c = loadStoredConfig();
-    return c && isValidConfig(c)
-      ? { mode: "connecting", projectId: c.projectId }
-      : { mode: "local" };
+    if (isAutoConnectDisabled()) return { mode: "local" };
+    return { mode: "connecting", projectId: getEffectiveConfig().projectId };
   });
 
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
@@ -182,10 +181,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(t);
   }, [db]);
 
-  // عند الفتح: استعادة الاتصال إن وُجد إعداد محفوظ
+  // عند الفتح: الاتصال التلقائي بمشروع دوبلكس ما لم يُعطَّل يدويًا
   useEffect(() => {
-    const c = loadStoredConfig();
-    if (c && isValidConfig(c)) activate(c);
+    if (!isAutoConnectDisabled()) activate(getEffectiveConfig());
     return () => unsubRef.current?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -198,6 +196,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     dismissToast,
     connectFirebase: (cfg) => {
       saveStoredConfig(cfg);
+      setAutoConnectDisabled(false);
       remoteTsRef.current = 0;
       activate(cfg);
     },
@@ -205,6 +204,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       unsubRef.current?.();
       unsubRef.current = null;
       clearStoredConfig();
+      setAutoConnectDisabled(true);
       setSync({ mode: "local" });
       toast("تم التبديل إلى التخزين المحلي", "info");
     },

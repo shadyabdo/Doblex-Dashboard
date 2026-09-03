@@ -11,6 +11,39 @@ export interface FirebaseConfig {
 }
 
 const CFG_KEY = "dublex-fb-cfg";
+const OFF_KEY = "dublex-fb-off";
+
+/** إعدادات مشروع Dublex الرسمية — الاتصال التلقائي */
+export const DEFAULT_CONFIG: FirebaseConfig = {
+  apiKey: "AIzaSyB6zdS1RbyPqbKjmArSyEtk2vyO3ErZ6og",
+  authDomain: "dublex-26.firebaseapp.com",
+  projectId: "dublex-26",
+  storageBucket: "dublex-26.firebasestorage.app",
+  messagingSenderId: "252085069789",
+  appId: "1:252085069789:web:38c7bdef155ad74838f834",
+};
+
+export function isAutoConnectDisabled(): boolean {
+  try {
+    return localStorage.getItem(OFF_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setAutoConnectDisabled(v: boolean) {
+  try {
+    if (v) localStorage.setItem(OFF_KEY, "1");
+    else localStorage.removeItem(OFF_KEY);
+  } catch {
+    /* تجاهل */
+  }
+}
+
+/** الإعداد الفعّال: المحفوظ إن وُجد، وإلا إعدادات المشروع الرسمية */
+export function getEffectiveConfig(): FirebaseConfig {
+  return loadStoredConfig() ?? DEFAULT_CONFIG;
+}
 
 /** مسار مستند الداشبورد داخل Firestore */
 export const DOC_PATH: [string, string] = ["dashboards", "dublex-main"];
