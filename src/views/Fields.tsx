@@ -1,8 +1,8 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useStore } from "../store";
 import { I, type IconName } from "../icons";
-import { Confirm, EmptyState, Overline, Reveal, Ticks } from "../components/ui";
-import { formatDate, type Field } from "../types";
+import { Confirm, EmptyState, Overline, Reveal, Switch, Ticks } from "../components/ui";
+import { formatDate, isVideoField, looksLikeVideoName, type Field } from "../types";
 
 const SWATCHES = [
   { color: "#0E6E55", soft: "#D9EAE2", name: "صنوبري" },
@@ -23,6 +23,7 @@ interface FormState {
   icon: string;
   color: string;
   soft: string;
+  isVideo: boolean;
 }
 
 const emptyForm: FormState = {
@@ -31,6 +32,7 @@ const emptyForm: FormState = {
   icon: "code",
   color: SWATCHES[0].color,
   soft: SWATCHES[0].soft,
+  isVideo: false,
 };
 
 export default function Fields() {
@@ -44,15 +46,35 @@ export default function Fields() {
 
   const openNew = () => {
     setForm(emptyForm);
+    videoOverride.current = false;
     setEditingId(null);
     setFormOpen(true);
   };
 
+  const videoOverride = useRef(false);
+
   const startEdit = (f: Field) => {
-    setForm({ name: f.name, desc: f.desc, icon: f.icon, color: f.color, soft: f.soft });
+    setForm({
+      name: f.name,
+      desc: f.desc,
+      icon: f.icon,
+      color: f.color,
+      soft: f.soft,
+      isVideo: !!f.isVideo,
+    });
+    videoOverride.current = false;
     setEditingId(f.id);
     setFormOpen(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  /* يكتب الاسم → نكتشف تلقائيًا إن كان المجال فيديوي (ما لم يعدّلها المستخدم يدويًا) */
+  const onName = (v: string) => {
+    setForm((f) => ({
+      ...f,
+      name: v,
+      isVideo: videoOverride.current ? f.isVideo : looksLikeVideoName(v),
+    }));
   };
 
   const submit = (e: FormEvent) => {
@@ -112,7 +134,7 @@ export default function Fields() {
                       className="inp"
                       placeholder="مثال: تطوير تطبيقات الموبايل"
                       value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
+                      onChange={(e) => onName(e.target.value)}
                     />
                   </div>
                   <div>
@@ -166,6 +188,40 @@ export default function Fields() {
                     ))}
                   </div>
                 </div>
+
+                {/* نوع المحتوى: فيديو؟ */}
+                <div
+                  className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition-colors duration-200 ${
+                    form.isVideo ? "border-coral/40 bg-coral-soft/45" : "border-line bg-card"
+                  }`}
+                >
+                  <span className="flex items-center gap-2.5">
+                    <span
+                      className={`flex h-9 w-9 items-center justify-center rounded-lg transition-colors ${
+                        form.isVideo ? "bg-coral text-card" : "bg-ink-50 text-ink-400"
+                      }`}
+                    >
+                      <I n="play" className="h-4 w-4" />
+                    </span>
+                    <span>
+                      <span className="block font-display text-[13px] font-extrabold text-ink-800">
+                        مجال يحتوي فيديوهات
+                      </span>
+                      <span className="block text-[11px] text-ink-400">
+                        تظهر خانة رابط فيديو (iframe) في مشاريعه — يوتيوب، فيميو، أو أي منصة
+                      </span>
+                    </span>
+                  </span>
+                  <Switch
+                    on={form.isVideo}
+                    onChange={(v) => {
+                      videoOverride.current = true;
+                      setForm((f) => ({ ...f, isVideo: v }));
+                    }}
+                    label="مجال فيديوهات"
+                  />
+                </div>
+
                 <div className="flex flex-wrap gap-3 pt-1">
                   <button
                     type="submit"
@@ -269,9 +325,17 @@ export default function Fields() {
                 </div>
                 <h3 className="mt-4 font-display text-base font-extrabold text-ink-900">{f.name}</h3>
                 <p className="mt-1.5 min-h-[3.5rem] text-sm leading-6 text-ink-500">{f.desc || "بدون وصف"}</p>
-                <div className="mt-4 flex items-center justify-between border-t border-dashed border-line pt-3.5">
-                  <span className="rounded-full px-3 py-1 font-mono text-[11px] font-bold" style={{ background: f.soft, color: f.color }}>
-                    {projectCount(f.id)} مشاريع
+                <div className="mt-4 flex items-center justify-between gap-2 border-t border-dashed border-line pt-3.5">
+                  <span className="flex items-center gap-1.5">
+                    <span className="rounded-full px-3 py-1 font-mono text-[11px] font-bold" style={{ background: f.soft, color: f.color }}>
+                      {projectCount(f.id)} مشاريع
+                    </span>
+                    {isVideoField(f) && (
+                      <span className="flex items-center gap-1 rounded-full bg-coral-soft px-2.5 py-1 text-[10px] font-bold text-coral">
+                        <I n="play" className="h-3 w-3" />
+                        فيديو
+                      </span>
+                    )}
                   </span>
                   <span className="font-mono text-[10px] font-semibold text-ink-300">{formatDate(f.createdAt)}</span>
                 </div>

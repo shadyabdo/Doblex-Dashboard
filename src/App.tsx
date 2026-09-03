@@ -76,6 +76,7 @@ const STRUCTURE_SAMPLE = `{
       "icon": "code",               // code | megaphone | palette | film | camera | globe | chart | spark | pen | briefcase
       "color": "#0E6E55",           // اللون الأساسي للمجال
       "soft": "#D9EAE2",            // نفس اللون بدرجة فاتحة للخلفيات
+      "isVideo": true,              // اختياري — المجال يحتوي فيديوهات (تظهر خانة رابط الفيديو بمشاريعه)
       "createdAt": 1735689600000    // تاريخ الإضافة (مللي ثانية)
     }
   ],
@@ -100,6 +101,7 @@ const STRUCTURE_SAMPLE = `{
       "achievements": [
         { "id": "a1", "metric": "+38%", "text": "زيادة في معدل التحويل" }
       ],
+      "videoUrl": "https://www.youtube.com/embed/…",  // اختياري — رابط embed يُعرض في iframe (للمجالات الفيديوية)
       "createdAt": 1735689600000
     }
   ],

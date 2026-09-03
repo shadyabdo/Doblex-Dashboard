@@ -159,6 +159,7 @@ const P = {
       <path d="M12 7v5.2l3.2 2" />
     </>
   ),
+  play: <path d="M8 5.5v13l11-6.5Z" />,
   menu: <path d="M4 6.5h16M4 12h16M4 17.5h10" />,
   camera: (
     <>

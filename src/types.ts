@@ -19,6 +19,8 @@ export interface Field {
   icon: string;
   color: string;
   soft: string;
+  /** مجال يحتوي محتوى فيديو — تظهر فيه خانة رابط الفيديو بالمشاريع */
+  isVideo?: boolean;
   createdAt: number;
 }
 
@@ -56,6 +58,8 @@ export interface Project {
   details: string;
   goals: Goal[];
   achievements: Achievement[];
+  /** رابط فيديو مضمّن (iframe embed) — يظهر كمشغّل في تفاصيل المشروع */
+  videoUrl?: string;
   createdAt: number;
 }
 
@@ -75,6 +79,54 @@ export interface Article {
   publishedAt: number | null;
   readMins: number;
   createdAt: number;
+}
+
+/** هل يبدو اسم المجال متعلقًا بالفيديو؟ (لاكتشاف تلقائي عند الإضافة) */
+export function looksLikeVideoName(name: string): boolean {
+  return /فيديو|مونتاج|إعلان|إعلانات|اعلان|دعايا|دعايه|موشن|video|film|editing/i.test(name);
+}
+
+/** هل المجال يحتوي فيديو؟ (العلم الصريح أو الاستدلال من الاسم) */
+export function isVideoField(f: Field | undefined | null): boolean {
+  if (!f) return false;
+  return !!f.isVideo || looksLikeVideoName(f.name);
+}
+
+/**
+ * يحوّل أي رابط فيديو إلى صيغة embed صالحة للـ iframe.
+ * يوتيوب (watch / youtu.be / shorts / live) ← embed، فيميو ← player،
+ * جوجل درايف ← preview، وأي منصة أخرى تمر كما هي.
+ */
+export function normalizeEmbedUrl(input: string): string | null {
+  const s = (input ?? "").trim();
+  if (!s || !/^https?:\/\//i.test(s)) return null;
+  try {
+    const u = new URL(s);
+    const host = u.hostname.replace(/^www\./, "").toLowerCase();
+
+    if (host === "youtu.be") {
+      const id = u.pathname.split("/").filter(Boolean)[0];
+      if (id) return `https://www.youtube.com/embed/${id}`;
+    }
+    if (host.endsWith("youtube.com") || host.endsWith("youtube-nocookie.com")) {
+      if (u.pathname === "/watch") {
+        const v = u.searchParams.get("v");
+        if (v) return `https://www.youtube.com/embed/${v}`;
+      }
+      const shorts = u.pathname.match(/^\/(shorts|live|embed)\/([\w-]+)/);
+      if (shorts) return `https://www.youtube.com/embed/${shorts[2]}`;
+    }
+    if (host === "vimeo.com") {
+      const id = u.pathname.split("/").filter(Boolean)[0];
+      if (id && /^\d+$/.test(id)) return `https://player.vimeo.com/video/${id}`;
+    }
+    if (host === "drive.google.com" && u.pathname.includes("/view")) {
+      return s.replace("/view", "/preview");
+    }
+    return s; /* باقي المنصات: الرابط يُمرَّر كما هو */
+  } catch {
+    return null;
+  }
 }
 
 /** تحوّل الكلمات المفتاحية إلى وسوم آمنة للروابط: "تحسين محركات البحث" ← "تحسين-محركات-البحث" */
