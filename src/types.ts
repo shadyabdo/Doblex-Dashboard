@@ -62,14 +62,35 @@ export interface Project {
 export interface Article {
   id: string;
   title: string;
+  /** الكلمات المفتاحية كما كتبها المستخدم (للعرض والبحث داخل الداشبورد) */
   keywords: string[];
+  /** وسوم بصيغة slug نظيفة وجاهزة للروابط — يقرأها الموقع الرئيسي من Firestore */
+  tags: string[];
   fieldLabel: string;
   excerpt: string;
   body: string;
   cover: string;
   published: boolean;
+  /** تاريخ النشر الفعلي (null للمقالات المسودة) — يقرأه الموقع الرئيسي */
+  publishedAt: number | null;
   readMins: number;
   createdAt: number;
+}
+
+/** تحوّل الكلمات المفتاحية إلى وسوم آمنة للروابط: "تحسين محركات البحث" ← "تحسين-محركات-البحث" */
+export function toTags(keywords: string[]): string[] {
+  const out: string[] = [];
+  for (const k of keywords ?? []) {
+    const slug = k
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^\p{L}\p{N}_-]/gu, "")
+      .replace(/-{2,}/g, "-")
+      .replace(/^-|-$/g, "");
+    if (slug && !out.includes(slug)) out.push(slug);
+  }
+  return out;
 }
 
 export interface Db {

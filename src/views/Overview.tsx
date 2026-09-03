@@ -528,7 +528,7 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
                       {a.title}
                     </span>
                     <span className="mt-1 flex items-center gap-2 text-[11px] text-ink-400">
-                      {formatDate(a.createdAt)}
+                      {a.published && a.publishedAt ? `نُشر ${formatDate(a.publishedAt)}` : formatDate(a.createdAt)}
                       <span className="h-1 w-1 rounded-full bg-ink-300" />
                       {a.readMins} دقائق قراءة
                       {!a.published && (

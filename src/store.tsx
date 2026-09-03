@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { getDoc, onSnapshot, setDoc } from "firebase/firestore";
-import type { Article, Db, Field, Project, ToastMsg } from "./types";
+import { toTags, type Article, type Db, type Field, type Project, type ToastMsg } from "./types";
 import { seedDb } from "./seed";
 import {
   clearStoredConfig,
@@ -33,6 +33,24 @@ const uid = () =>
 const readMins = (body: string) =>
   Math.max(1, Math.round(body.trim().split(/\s+/).length / 180));
 
+/** يكمل الحقول الجديدة (tags / publishedAt) للبيانات القديمة المحفوظة قبل التحديث */
+function normalizeDb(d: Db): Db {
+  return {
+    fields: d.fields ?? [],
+    projects: d.projects ?? [],
+    articles: (d.articles ?? []).map((a) => ({
+      ...a,
+      tags:
+        Array.isArray(a.tags) && a.tags.length > 0
+          ? a.tags
+          : toTags(a.keywords ?? []),
+      publishedAt: a.published
+        ? (a.publishedAt ?? a.createdAt ?? null)
+        : (a.publishedAt ?? null),
+    })),
+  };
+}
+
 export type SyncMode = "local" | "connecting" | "cloud" | "error";
 export interface SyncState {
   mode: SyncMode;
@@ -56,7 +74,9 @@ interface StoreApi {
   updateProject: (id: string, patch: Partial<Project>) => void;
   deleteProject: (id: string) => void;
   toggleGoal: (projectId: string, goalId: string) => void;
-  addArticle: (a: Omit<Article, "id" | "createdAt" | "readMins">) => void;
+  addArticle: (
+    a: Omit<Article, "id" | "createdAt" | "readMins" | "tags" | "publishedAt">
+  ) => void;
   updateArticle: (id: string, patch: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
 }
@@ -79,7 +99,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           Array.isArray(d.projects) &&
           Array.isArray(d.articles)
         )
-          return d;
+          return normalizeDb(d);
       }
     } catch {
       /* بيانات تالفة → بداية نظيفة */
@@ -197,11 +217,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             const ts = data.updatedAt ?? 0;
             if (!writingRef.current && ts > remoteTsRef.current) {
               remoteTsRef.current = ts;
-              setDb({
-                fields: data.fields ?? [],
-                projects: data.projects ?? [],
-                articles: data.articles ?? [],
-              });
+              setDb(
+                normalizeDb({
+                  fields: data.fields ?? [],
+                  projects: data.projects ?? [],
+                  articles: data.articles ?? [],
+                })
+              );
             }
           } else {
             /* المستند لم يُنشأ بعد: نرفع بياناتنا المحلية */
@@ -312,7 +334,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setDb((d) => ({
         ...d,
         articles: [
-          { ...a, id: uid(), readMins: readMins(a.body), createdAt: Date.now() },
+          {
+            ...a,
+            tags: toTags(a.keywords),
+            publishedAt: a.published ? Date.now() : null,
+            id: uid(),
+            readMins: readMins(a.body),
+            createdAt: Date.now(),
+          },
           ...d.articles,
         ],
       })),
@@ -321,8 +350,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ...d,
         articles: d.articles.map((a) => {
           if (a.id !== id) return a;
-          const next = { ...a, ...patch };
+          const next: Article = { ...a, ...patch };
           if (patch.body !== undefined) next.readMins = readMins(next.body);
+          /* أي تعديل في الكلمات المفتاحية يعيد توليد الوسوم تلقائيًا */
+          if (patch.keywords !== undefined) next.tags = toTags(next.keywords);
+          /* تاريخ النشر: يُسجَّل عند أول نشر ويحتفظ بقيمته بعدها */
+          if (patch.published !== undefined) {
+            next.publishedAt = patch.published
+              ? (a.publishedAt ?? Date.now())
+              : (a.publishedAt ?? null);
+          }
           return next;
         }),
       })),
