@@ -132,7 +132,15 @@ export default function Articles({ go }: { go: (v: View) => void }) {
                       {a.fieldLabel && (
                         <span className="rounded-md bg-sea-soft px-2 py-0.5 text-[10px] font-bold text-sea">{a.fieldLabel}</span>
                       )}
-                      <span className="ms-auto font-mono text-[11px] font-semibold text-ink-300">{formatDate(a.createdAt)}</span>
+                      {a.published && a.publishedAt && (
+                        <span className="flex items-center gap-1 rounded-md bg-gold-soft px-2 py-0.5 text-[10px] font-bold text-gold-deep">
+                          <I n="calendar" className="h-3 w-3" />
+                          نُشر {formatDate(a.publishedAt)}
+                        </span>
+                      )}
+                      <span className="ms-auto font-mono text-[11px] font-semibold text-ink-300">
+                        أضيف {formatDate(a.createdAt)}
+                      </span>
                     </div>
                     <h3 className="mt-2.5 font-display text-lg font-extrabold leading-8 text-ink-900 transition-colors group-hover:text-brand sm:text-xl">
                       {a.title}
@@ -201,7 +209,16 @@ export default function Articles({ go }: { go: (v: View) => void }) {
                   {reading.title}
                 </h2>
                 <p className="mt-2 flex flex-wrap items-center gap-3 text-[12px] font-bold text-ink-400">
-                  <span>{formatDate(reading.createdAt)}</span>
+                  {reading.published && reading.publishedAt ? (
+                    <span className="flex items-center gap-1.5 rounded-md bg-gold-soft px-2.5 py-1 text-gold-deep">
+                      <I n="calendar" className="h-3.5 w-3.5" />
+                      تاريخ النشر: {formatDate(reading.publishedAt)}
+                    </span>
+                  ) : (
+                    <span className="rounded-md bg-ink-100 px-2.5 py-1 text-ink-500">مسودة — لم تُنشر بعد</span>
+                  )}
+                  <span className="h-1 w-1 rounded-full bg-ink-300" />
+                  <span>أضيفت {formatDate(reading.createdAt)}</span>
                   <span className="h-1 w-1 rounded-full bg-ink-300" />
                   <span>{reading.readMins} دقائق قراءة</span>
                   {reading.fieldLabel && (
@@ -232,20 +249,49 @@ export default function Articles({ go }: { go: (v: View) => void }) {
               ))}
             </div>
             <div className="mt-7 flex flex-wrap items-center gap-2 rounded-xl bg-ink-50/70 px-4 py-3.5">
-              <span className="font-mono text-[10px] font-semibold tracking-[0.2em] text-ink-400">الكلمات المفتاحية /</span>
-              {reading.keywords.map((k) => (
-                <span key={k} className="rounded-full bg-gold-soft px-2.5 py-1 text-[11px] font-bold text-gold-deep">{k}</span>
-              ))}
+                <span className="font-mono text-[10px] font-semibold tracking-[0.2em] text-ink-400">الكلمات المفتاحية /</span>
+                {reading.keywords.map((k) => (
+                  <span key={k} className="rounded-full bg-gold-soft px-2.5 py-1 text-[11px] font-bold text-gold-deep">{k}</span>
+                ))}
+              </div>
+              <div className="mt-2.5 flex flex-wrap items-center gap-2 rounded-xl border border-sea/25 bg-sea-soft/45 px-4 py-3.5">
+                <span className="flex items-center gap-1.5 font-mono text-[10px] font-semibold tracking-[0.2em] text-sea">
+                  <I n="tag" className="h-3.5 w-3.5" />
+                  TAGS / متزامنة في Firestore
+                </span>
+                <div className="flex flex-wrap gap-1.5" dir="ltr">
+                  {(reading.tags?.length ? reading.tags : []).map((t) => (
+                    <span key={t} className="rounded-full bg-card px-2.5 py-1 font-mono text-[11px] font-bold text-sea shadow-sm">
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard
+                      ?.writeText((reading.tags ?? []).map((t) => `#${t}`).join(" "))
+                      .then(() => toast("تم نسخ الوسوم"))
+                      .catch(() => toast("تعذّر النسخ", "error"));
+                  }}
+                  className="btn-press ms-auto flex items-center gap-1.5 rounded-lg bg-card px-3 py-1.5 text-[11px] font-bold text-sea shadow-sm hover:bg-sea hover:text-card"
+                >
+                  <I n="copy" className="h-3.5 w-3.5" />
+                  نسخ الكل
+                </button>
+                <p className="w-full text-[10px] leading-5 text-ink-400">
+                  يقرأها الموقع الرئيسي من حقل <code dir="ltr" className="font-mono font-bold">tags</code> داخل مستند
+                  الداشبورد — جاهزة للروابط (slug) بدون فراغات.
+                </p>
+              </div>
               <button
                 onClick={() => {
                   go({ name: "article-form", articleId: reading.id });
                 }}
-                className="btn-press ms-auto flex items-center gap-1.5 rounded-lg bg-ink-900 px-4 py-2 text-[12px] font-bold text-card hover:bg-ink-700"
+                className="btn-press mt-4 flex items-center gap-1.5 rounded-lg bg-ink-900 px-4 py-2 text-[12px] font-bold text-card hover:bg-ink-700"
               >
                 <I n="edit" className="h-3.5 w-3.5" />
                 تعديل المقال
               </button>
-            </div>
           </div>
         )}
       </Modal>

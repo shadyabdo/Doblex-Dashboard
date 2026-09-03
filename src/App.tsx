@@ -76,6 +76,7 @@ const STRUCTURE_SAMPLE = `{
       "icon": "code",               // code | megaphone | palette | film | camera | globe | chart | spark | pen | briefcase
       "color": "#0E6E55",           // اللون الأساسي للمجال
       "soft": "#D9EAE2",            // نفس اللون بدرجة فاتحة للخلفيات
+      "isVideo": true,              // اختياري — المجال يحتوي فيديوهات (تظهر خانة رابط الفيديو بمشاريعه)
       "createdAt": 1735689600000    // تاريخ الإضافة (مللي ثانية)
     }
   ],
@@ -100,6 +101,7 @@ const STRUCTURE_SAMPLE = `{
       "achievements": [
         { "id": "a1", "metric": "+38%", "text": "زيادة في معدل التحويل" }
       ],
+      "videoUrl": "https://www.youtube.com/embed/…",  // اختياري — رابط embed يُعرض في iframe (للمجالات الفيديوية)
       "createdAt": 1735689600000
     }
   ],
@@ -108,12 +110,14 @@ const STRUCTURE_SAMPLE = `{
     {
       "id": "ar-1",
       "title": "عنوان المقال",
-      "keywords": ["SEO", "تسويق رقمي"],   // الكلمات المفتاحية
+      "keywords": ["SEO", "تحسين محركات البحث"],  // الكلمات المفتاحية كما كُتبت
+      "tags": ["seo", "تحسين-محركات-البحث"],      // ★ وسوم جاهزة يقرأها الموقع (نفس الكلمات بصيغة slug)
       "fieldLabel": "التسويق الرقمي",       // اختياري
       "excerpt": "ملخص يظهر في البطاقة…",
       "body": "محتوى المقال كاملًا، سطر فارغ = فقرة جديدة",
       "cover": "https://iili.io/…jpg",  // صورة المقال — رابط مباشر
       "published": true,             // false = مسودة
+      "publishedAt": 1735689600000,  // ★ تاريخ النشر الفعلي — يقرأه الموقع (null للمسودات)
       "readMins": 6,                 // يُحسب تلقائيًا من طول المحتوى
       "createdAt": 1735689600000
     }
@@ -698,7 +702,8 @@ function CloudModal({
                   <b className="font-display text-ink-800">projects</b> — مصفوفة المشاريع: الغلاف، الصور، الأهداف، الإنجازات.
                 </li>
                 <li className="rounded-xl border border-dashed border-line bg-card px-3.5 py-2.5">
-                  <b className="font-display text-ink-800">articles</b> — مصفوفة المقالات مع keywords وصورة الغلاف وحالة النشر.
+                  <b className="font-display text-ink-800">articles</b> — مصفوفة المقالات: keywords للعرض، و<b>tags</b> وسوم جاهزة
+                  يقرأها الموقع، و<b>publishedAt</b> تاريخ النشر، وصورة الغلاف وحالة النشر.
                 </li>
                 <li className="rounded-xl border border-dashed border-line bg-card px-3.5 py-2.5">
                   <b className="font-display text-ink-800">updatedAt</b> — طابع زمن يحدّثه النظام تلقائيًا لحل تعارضات المزامنة.

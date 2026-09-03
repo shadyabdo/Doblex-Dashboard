@@ -42,6 +42,7 @@ export default function Projects({ go }: { go: (v: View) => void }) {
   const [q, setQ] = useState("");
   const [fieldFilter, setFieldFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<"all" | ProjectStatus>("all");
+  const [videoOnly, setVideoOnly] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [delTarget, setDelTarget] = useState<Project | null>(null);
 
@@ -53,11 +54,12 @@ export default function Projects({ go }: { go: (v: View) => void }) {
         p.subtitle.includes(q) ||
         p.client.includes(q) ||
         p.fieldLabel.includes(q);
+      const matchV = !videoOnly || !!p.videoUrl;
       const matchF = fieldFilter === "all" || p.fieldId === fieldFilter;
       const matchS = statusFilter === "all" || p.status === statusFilter;
-      return matchQ && matchF && matchS;
+      return matchQ && matchF && matchS && matchV;
     });
-  }, [db.projects, q, fieldFilter, statusFilter]);
+  }, [db.projects, q, fieldFilter, statusFilter, videoOnly]);
 
   const selected = selectedId ? db.projects.find((p) => p.id === selectedId) : undefined;
   const fieldOf = (p: Project) => db.fields.find((f) => f.id === p.fieldId);
@@ -87,6 +89,19 @@ export default function Projects({ go }: { go: (v: View) => void }) {
             <option value="active">جاري التنفيذ</option>
             <option value="done">مكتمل</option>
           </select>
+          <button
+            onClick={() => setVideoOnly(!videoOnly)}
+            aria-pressed={videoOnly}
+            className={`btn-press flex items-center gap-1.5 rounded-xl border px-4 py-2.5 text-[12px] font-bold transition-all ${
+              videoOnly
+                ? "border-coral bg-coral text-card shadow-md"
+                : "border-ink-200 bg-card text-ink-500 hover:border-coral/60 hover:text-coral"
+            }`}
+          >
+            <I n="play" className="h-3.5 w-3.5" />
+            فيه فيديو
+            {videoOnly && <I n="check" className="h-3.5 w-3.5" />}
+          </button>
           <span className="font-mono text-[12px] font-bold text-ink-400">
             {filtered.length} / {db.projects.length}
           </span>
@@ -178,6 +193,12 @@ export default function Projects({ go }: { go: (v: View) => void }) {
                       </span>
                       {p.fieldLabel}
                     </span>
+                    {p.videoUrl && (
+                      <span className="absolute bottom-3 end-3 flex items-center gap-1 rounded-md bg-coral px-2 py-1 text-[10px] font-bold text-card shadow-md transition-transform duration-300 group-hover:scale-110">
+                        <I n="play" className="h-3 w-3" />
+                        فيديو
+                      </span>
+                    )}
                   </div>
                   <div className="p-5">
                     <div className="flex items-start justify-between gap-2">
@@ -274,6 +295,37 @@ export default function Projects({ go }: { go: (v: View) => void }) {
                   </div>
                 ))}
               </div>
+
+              {/* فيديو المشروع */}
+              {selected.videoUrl && (
+                <div className="mt-6">
+                  <div className="flex items-center justify-between">
+                    <h4 className="flex items-center gap-2 font-display text-sm font-extrabold text-ink-900">
+                      <I n="play" className="h-4 w-4 text-coral" />
+                      فيديو المشروع
+                    </h4>
+                    <a
+                      href={selected.videoUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="btn-press flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-[11px] font-bold text-ink-500 transition-colors hover:border-coral hover:text-coral"
+                    >
+                      <I n="link" className="h-3.5 w-3.5" />
+                      فتح في المنصة ↗
+                    </a>
+                  </div>
+                  <div className="pop relative mt-3 aspect-video overflow-hidden rounded-xl border border-line bg-ink-950 shadow-[0_20px_44px_-20px_rgba(11,36,28,0.45)]">
+                    <iframe
+                      src={selected.videoUrl}
+                      title={`فيديو ${selected.title}`}
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* الوصف والتفاصيل */}
               <div className="mt-6 grid gap-6 lg:grid-cols-2">

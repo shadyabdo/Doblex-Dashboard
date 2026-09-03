@@ -3,7 +3,7 @@ import { useStore } from "../store";
 import { I } from "../icons";
 import { ChipInput, Overline, Switch, Thumb, Ticks } from "../components/ui";
 import { ImageHelpButton } from "../imageHelp";
-import type { View } from "../types";
+import { formatDate, toTags, type View } from "../types";
 
 export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => void }) {
   const { db, addArticle, updateArticle, toast } = useStore();
@@ -162,7 +162,28 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
               <div>
                 <span className="lbl">الكلمات المفتاحية *</span>
                 <ChipInput value={keywords} onChange={setKeywords} placeholder="اكتب كلمة ثم Enter" />
-                <p className="mt-1.5 text-[11px] leading-5 text-ink-400">تُستخدم لفلترة المقالات وتحسين ظهورها في البحث.</p>
+                <p className="mt-1.5 text-[11px] leading-5 text-ink-400">
+                  تُستخدم لفلترة المقالات داخل الداشبورد — وتُحوَّل تلقائيًا لوسوم جاهزة
+                  للموقع الرئيسي.
+                </p>
+                {toTags(keywords).length > 0 && (
+                  <div className="pop mt-2.5 rounded-xl border border-sea/25 bg-sea-soft/45 px-3.5 py-3">
+                    <p className="flex items-center gap-1.5 font-mono text-[9px] font-semibold tracking-[0.2em] text-sea">
+                      <I n="tag" className="h-3 w-3" />
+                      TAGS / ستُزامن في حقل tags
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5" dir="ltr">
+                      {toTags(keywords).map((t) => (
+                        <span
+                          key={t}
+                          className="rounded-full bg-card px-2.5 py-1 font-mono text-[11px] font-bold text-sea shadow-sm"
+                        >
+                          #{t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="lbl" htmlFor="a-field">المجال المرتبط</label>
@@ -183,6 +204,25 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
                   </span>
                 </span>
                 <Switch on={published} onChange={setPublished} label="نشر المقال" />
+              </div>
+              <div className="rounded-xl border border-dashed border-line bg-card px-4 py-3">
+                <p className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1.5 font-display text-[12px] font-bold text-ink-700">
+                    <I n="calendar" className="h-3.5 w-3.5 text-brand" />
+                    تاريخ النشر
+                  </span>
+                  <span className="font-mono text-[12px] font-extrabold text-brand-deep">
+                    {editing?.publishedAt
+                      ? formatDate(editing.publishedAt)
+                      : published
+                        ? "يُسجَّل لحظة الحفظ"
+                        : "—"}
+                  </span>
+                </p>
+                <p className="mt-1.5 text-[10px] leading-5 text-ink-400">
+                  يُحفظ في حقل <code dir="ltr" className="font-mono font-bold text-ink-500">publishedAt</code> ويقرأه
+                  الموقع الرئيسي ليعرضه مع كل مقال.
+                </p>
               </div>
             </div>
           </section>

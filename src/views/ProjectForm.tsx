@@ -3,7 +3,15 @@ import { useStore } from "../store";
 import { I, type IconName } from "../icons";
 import { Overline, Thumb, Ticks } from "../components/ui";
 import { IMAGE_HOST_URL, ImageHelpButton } from "../imageHelp";
-import type { Achievement, Goal, ProjectImage, ProjectStatus, View } from "../types";
+import {
+  isVideoField,
+  normalizeEmbedUrl,
+  type Achievement,
+  type Goal,
+  type ProjectImage,
+  type ProjectStatus,
+  type View,
+} from "../types";
 
 const gid = () => Math.random().toString(36).slice(2, 10);
 
@@ -55,6 +63,7 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
   const [cover, setCover] = useState(editing?.cover ?? "");
   const [coverUrl, setCoverUrl] = useState("");
   const [images, setImages] = useState<ProjectImage[]>(editing?.images ?? []);
+  const [videoUrl, setVideoUrl] = useState(editing?.videoUrl ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
   const [details, setDetails] = useState(editing?.details ?? "");
   const [goals, setGoals] = useState<Goal[]>(editing?.goals ?? []);
@@ -67,6 +76,12 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
   const [galleryUrl, setGalleryUrl] = useState("");
 
   const validUrl = (s: string) => /^https?:\/\/.+/i.test(s);
+
+  /* المجال المحدد وهل يحتوي فيديوهات → يظهر قسم رابط الفيديو */
+  const selectedField = db.fields.find((f) => f.id === fieldId);
+  const videoDomain = isVideoField(selectedField);
+  const embedPreview = videoUrl.trim() ? normalizeEmbedUrl(videoUrl) : null;
+  const videoInvalid = videoUrl.trim().length > 0 && embedPreview === null;
 
   const setCoverLink = () => {
     const v = coverUrl.trim();
@@ -149,6 +164,8 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
       status,
       cover,
       images,
+      /* يُحفظ رابط الـ embed الموحّد — يقرأه الموقع ويعرضه في iframe */
+      videoUrl: videoDomain && embedPreview ? embedPreview : "",
       description: description.trim(),
       details: details.trim(),
       goals,
@@ -176,7 +193,9 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
           </span>
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-ink-500">
-          خمس خطوات: المجال ← البيانات ← الصور ← التفاصيل ← الأهداف والإنجازات. كل ما تحفظه
+          {videoDomain
+            ? "ست خطوات: المجال ← البيانات ← الصور ← الفيديو ← التفاصيل ← الأهداف والإنجازات. كل ما تحفظه"
+            : "خمس خطوات: المجال ← البيانات ← الصور ← التفاصيل ← الأهداف والإنجازات. كل ما تحفظه"}
           يظهر فورًا في لوحة الفريق{db.fields.length > 0 ? "" : " بعد إضافة المجالات"}.
         </p>
       </div>
@@ -222,7 +241,15 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
                   <span className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: f.soft, color: f.color }}>
                     <I n={f.icon as IconName} className="h-5 w-5" />
                   </span>
-                  <span className="mt-3 block font-display text-sm font-extrabold text-ink-900">{f.name}</span>
+                  <span className="mt-3 flex items-center gap-1.5 font-display text-sm font-extrabold text-ink-900">
+                    {f.name}
+                    {isVideoField(f) && (
+                      <span className="flex items-center gap-0.5 rounded-full bg-coral-soft px-1.5 py-0.5 text-[9px] font-bold text-coral">
+                        <I n="play" className="h-2.5 w-2.5" />
+                        فيديو
+                      </span>
+                    )}
+                  </span>
                   <span className="mt-1 line-clamp-2 block text-[11px] leading-5 text-ink-400">{f.desc}</span>
                 </button>
               );
@@ -369,8 +396,68 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
         </div>
       </Step>
 
-      {/* 04 التفاصيل */}
-      <Step num="04" title="الوصف والتفاصيل" desc="ماذا فعلنا؟ وكيف نفّذنا؟">
+      {/* قسم الفيديو — يظهر فقط للمجالات الفيديوية */}
+      {videoDomain && (
+        <Step num="04" title="فيديو المشروع" desc="الصق رابط الفيديو وسيُضمَّن كمشغّل داخل المشروع">
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div>
+              <label className="lbl" htmlFor="p-video">رابط الفيديو (iframe)</label>
+              <div className="relative">
+                <I n="play" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
+                <input
+                  id="p-video"
+                  dir="ltr"
+                  className="inp !ps-10 !text-left !font-mono !text-[12px]"
+                  placeholder="https://www.youtube.com/watch?v=…  أو رابط embed من أي منصة"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                />
+              </div>
+              <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-6 text-ink-400">
+                <I n="bulb" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-deep" />
+                يوتيوب (watch أو youtu.be أو shorts) وفيميو وجوجل درايف تتحول تلقائيًا لرابط
+                embed — وأي منصة أخرى الصق رابط الـ embed الخاص بها مباشرة.
+              </p>
+              {videoInvalid && (
+                <p className="pop mt-2 flex items-center gap-1.5 rounded-lg border border-coral/35 bg-coral-soft/50 px-3 py-2 text-[11px] font-bold text-coral">
+                  <I n="x" className="h-3.5 w-3.5 shrink-0" />
+                  الرابط غير صالح — يجب أن يبدأ بـ https://
+                </p>
+              )}
+              {embedPreview && !videoInvalid && (
+                <p className="pop mt-2 flex items-center gap-1.5 text-[11px] font-bold text-brand-deep">
+                  <I n="check" className="h-3.5 w-3.5 shrink-0" />
+                  تم التعرف على الرابط — المعاينة الحية بجوار
+                </p>
+              )}
+            </div>
+            <div>
+              <span className="lbl">معاينة حية</span>
+              {embedPreview ? (
+                <div className="pop relative aspect-video overflow-hidden rounded-xl border border-line bg-ink-950 shadow-[0_16px_36px_-18px_rgba(11,36,28,0.4)]">
+                  <iframe
+                    key={embedPreview}
+                    src={embedPreview}
+                    title="معاينة فيديو المشروع"
+                    className="h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    referrerPolicy="strict-origin-when-cross-origin"
+                  />
+                </div>
+              ) : (
+                <div className="flex aspect-video flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-ink-200 bg-ink-50/40 text-ink-300">
+                  <I n="film" className="h-8 w-8" />
+                  <span className="text-[12px] font-bold">الصق رابطًا صالحًا ليظهر الفيديو هنا فورًا</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </Step>
+      )}
+
+      {/* التفاصيل */}
+      <Step num={videoDomain ? "05" : "04"} title="الوصف والتفاصيل" desc="ماذا فعلنا؟ وكيف نفّذنا؟">
         <div className="grid gap-4 lg:grid-cols-2">
           <div>
             <label className="lbl" htmlFor="p-desc">وصف المشروع</label>
@@ -383,8 +470,8 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
         </div>
       </Step>
 
-      {/* 05 الأهداف والإنجازات */}
-      <Step num="05" title="الأهداف والإنجازات" desc="ما خططنا له، وما تحقق فعلًا بالأرقام">
+      {/* الأهداف والإنجازات */}
+      <Step num={videoDomain ? "06" : "05"} title="الأهداف والإنجازات" desc="ما خططنا له، وما تحقق فعلًا بالأرقام">
         <div className="grid gap-7 lg:grid-cols-2">
           <div>
             <span className="lbl">الأهداف ({goals.length})</span>
