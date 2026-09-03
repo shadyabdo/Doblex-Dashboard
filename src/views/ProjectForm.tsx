@@ -1,8 +1,8 @@
 import { useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import { useStore } from "../store";
 import { I, type IconName } from "../icons";
-import { Dropzone, Overline, Thumb, Ticks } from "../components/ui";
-import { useUploader } from "../upload";
+import { Overline, Thumb, Ticks } from "../components/ui";
+import { IMAGE_HOST_URL, ImageHelpButton } from "../imageHelp";
 import type { Achievement, Goal, ProjectImage, ProjectStatus, View } from "../types";
 
 const gid = () => Math.random().toString(36).slice(2, 10);
@@ -64,16 +64,38 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
   const [achText, setAchText] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const { busy: uploading, run } = useUploader();
+  const [galleryUrl, setGalleryUrl] = useState("");
 
-  const onCoverFiles = async (files: File[]) => {
-    const urls = await run(files.slice(0, 1));
-    if (urls[0]) setCover(urls[0]);
+  const validUrl = (s: string) => /^https?:\/\/.+/i.test(s);
+
+  const setCoverLink = () => {
+    const v = coverUrl.trim();
+    if (!v) {
+      toast("الصق رابط الصورة أولًا — من Image2URL", "error");
+      return;
+    }
+    if (!validUrl(v)) {
+      toast("الرابط غير صالح — يجب أن يبدأ بـ https:// (انسخ الـ Direct Link من Image2URL)", "error");
+      return;
+    }
+    setCover(v);
+    setCoverUrl("");
+    toast("تم تعيين صورة الغلاف كرابط مباشر");
   };
 
-  const onGalleryFiles = async (files: File[]) => {
-    const urls = await run(files);
-    if (urls.length) setImages((prev) => [...prev, ...urls.map((src) => ({ id: gid(), src }))]);
+  const addGalleryLink = () => {
+    const v = galleryUrl.trim();
+    if (!v) {
+      toast("الصق رابط الصورة أولًا — من Image2URL", "error");
+      return;
+    }
+    if (!validUrl(v)) {
+      toast("الرابط غير صالح — يجب أن يبدأ بـ https:// (انسخ الـ Direct Link من Image2URL)", "error");
+      return;
+    }
+    setImages((prev) => [...prev, { id: gid(), src: v }]);
+    setGalleryUrl("");
+    toast("تمت إضافة الصورة للمعرض كرابط مباشر");
   };
 
   const addGoal = () => {
@@ -251,35 +273,50 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
       </Step>
 
       {/* 03 الصور */}
-      <Step num="03" title="الغلاف ومعرض الصور" desc="ارفع الصور من جهازك أو الصق رابطًا مباشرًا">
+      <Step num="03" title="الغلاف ومعرض الصور" desc="أضف الصور كروابط مباشرة من Image2URL">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-gold/50 bg-gold-soft/35 px-4 py-3">
+          <p className="flex items-center gap-2 text-[12px] font-bold leading-6 text-ink-600">
+            <I n="link" className="h-4 w-4 shrink-0 text-gold-deep" />
+            الصور تُضاف بروابط مباشرة فقط — ارفعها على Image2URL والصق الـ Direct Link هنا.
+          </p>
+          <div className="flex items-center gap-2">
+            <a
+              href={IMAGE_HOST_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-press rounded-lg bg-ink-900 px-3 py-1.5 text-[11px] font-bold text-card hover:bg-ink-700"
+            >
+              فتح Image2URL ↗
+            </a>
+            <ImageHelpButton />
+          </div>
+        </div>
+
         <div className="grid gap-5 lg:grid-cols-2">
           <div>
-            <span className="lbl">صورة الغلاف</span>
-            <Dropzone onFiles={onCoverFiles} label="ارفع صورة الغلاف" busy={uploading} />
-            <div className="mt-3 flex gap-2">
+            <span className="lbl">رابط صورة الغلاف</span>
+            <div className="flex gap-2">
               <div className="relative flex-1">
                 <I n="link" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
                 <input
-                  className="inp !ps-10"
-                  placeholder="أو الصق رابط الصورة…"
+                  dir="ltr"
+                  className="inp !ps-10 !text-left"
+                  placeholder="https://www.image2url.com/r2/default/images/…"
                   value={coverUrl}
                   onChange={(e) => setCoverUrl(e.target.value)}
                 />
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  if (coverUrl.trim()) {
-                    setCover(coverUrl.trim());
-                    setCoverUrl("");
-                    toast("تم تعيين صورة الغلاف");
-                  }
-                }}
-                className="btn-press rounded-xl bg-ink-900 px-4 text-xs font-bold text-card hover:bg-ink-700"
+                onClick={setCoverLink}
+                className="btn-press rounded-xl bg-ink-900 px-5 text-xs font-bold text-card hover:bg-ink-700"
               >
                 تعيين
               </button>
             </div>
+            <p className="mt-1.5 text-[11px] text-ink-400">
+              انسخ الـ Direct Link من Image2URL بعد الرفع ثم الصقه هنا.
+            </p>
           </div>
           <div>
             <span className="lbl">معاينة الغلاف</span>
@@ -289,21 +326,45 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
               <div className="flex h-44 items-center justify-center rounded-xl border-2 border-dashed border-ink-200 bg-ink-50/40 text-ink-300">
                 <span className="flex flex-col items-center gap-2 text-xs font-semibold">
                   <I n="image" className="h-7 w-7" />
-                  لم تُرفع صورة غلاف بعد
+                  لم تُضف صورة غلاف بعد
                 </span>
               </div>
             )}
           </div>
         </div>
+
         <div className="mt-6">
           <span className="lbl">معرض صور المشروع ({images.length})</span>
-          <Dropzone onFiles={onGalleryFiles} label="أضف صورًا متعددة للمشروع" sub="يمكن اختيار أكثر من صورة دفعة واحدة" busy={uploading} />
-          {images.length > 0 && (
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <I n="link" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
+              <input
+                dir="ltr"
+                className="inp !ps-10 !text-left"
+                placeholder="https://www.image2url.com/r2/default/images/…"
+                value={galleryUrl}
+                onChange={(e) => setGalleryUrl(e.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={addGalleryLink}
+              className="btn-press flex items-center gap-1.5 rounded-xl bg-brand px-5 text-xs font-bold text-card hover:bg-brand-deep"
+            >
+              <I n="plus" className="h-3.5 w-3.5" />
+              إضافة للمعرض
+            </button>
+          </div>
+          {images.length > 0 ? (
             <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
               {images.map((im) => (
                 <Thumb key={im.id} src={im.src} onRemove={() => setImages((prev) => prev.filter((x) => x.id !== im.id))} />
               ))}
             </div>
+          ) : (
+            <p className="mt-3 rounded-xl border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-[12px] font-semibold text-ink-400">
+              أضف أول صورة للصق رابطها — كل صورة تظهر هنا مع زر لنسخ رابطها.
+            </p>
           )}
         </div>
       </Step>

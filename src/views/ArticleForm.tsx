@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useStore } from "../store";
 import { I } from "../icons";
-import { ChipInput, Dropzone, Overline, Switch, Thumb, Ticks } from "../components/ui";
-import { useUploader } from "../upload";
+import { ChipInput, Overline, Switch, Thumb, Ticks } from "../components/ui";
+import { ImageHelpButton } from "../imageHelp";
 import type { View } from "../types";
 
 export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => void }) {
@@ -18,11 +18,19 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
   const [coverUrl, setCoverUrl] = useState("");
   const [published, setPublished] = useState(editing?.published ?? true);
   const [saving, setSaving] = useState(false);
-  const { busy: uploading, run } = useUploader();
-
-  const onCoverFiles = async (files: File[]) => {
-    const urls = await run(files.slice(0, 1));
-    if (urls[0]) setCover(urls[0]);
+  const setCoverLink = () => {
+    const v = coverUrl.trim();
+    if (!v) {
+      toast("الصق رابط الصورة أولًا — من Image2URL", "error");
+      return;
+    }
+    if (!/^https?:\/\/.+/i.test(v)) {
+      toast("الرابط غير صالح — يجب أن يبدأ بـ https:// (انسخ الـ Direct Link من Image2URL)", "error");
+      return;
+    }
+    setCover(v);
+    setCoverUrl("");
+    toast("تم تعيين صورة المقال كرابط مباشر");
   };
 
   const save = (e: FormEvent) => {
@@ -112,43 +120,43 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
             <Ticks className="text-ink-200" />
             <div className="space-y-5">
               <div>
-                <span className="lbl">صورة المقال</span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="lbl !mb-0">صورة المقال</span>
+                  <ImageHelpButton />
+                </div>
                 {cover ? (
-                  <Thumb src={cover} onRemove={() => setCover("")} className="h-36" />
+                  <>
+                    <Thumb src={cover} onRemove={() => setCover("")} className="mt-3 h-36" />
+                    <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-ink-400">
+                      <I n="link" className="h-3 w-3 text-brand" />
+                      مخزّنة كرابط مباشر — جاهزة للمزامنة مع فايربيز
+                    </p>
+                  </>
                 ) : (
-                  <Dropzone onFiles={onCoverFiles} label="ارفع صورة المقال" sub="ستتحول لرابط مباشر تلقائيًا" busy={uploading} />
-                )}
-                {cover && (
-                  <p className="mt-1.5 flex items-center gap-1.5 text-[11px] text-ink-400">
-                    <I n="link" className="h-3 w-3 text-brand" />
-                    {/^https?:\/\//i.test(cover) ? "مخزّنة كرابط مباشر — جاهزة للمزامنة" : "محفوظة محليًا"}
-                  </p>
-                )}
-                {!cover && (
-                  <div className="mt-2.5 flex gap-2">
-                    <div className="relative flex-1">
-                      <I n="link" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
-                      <input
-                        className="inp !ps-10"
-                        placeholder="أو الصق رابط صورة…"
-                        value={coverUrl}
-                        onChange={(e) => setCoverUrl(e.target.value)}
-                      />
+                  <>
+                    <div className="mt-3 flex gap-2">
+                      <div className="relative flex-1">
+                        <I n="link" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
+                        <input
+                          dir="ltr"
+                          className="inp !ps-10 !text-left"
+                          placeholder="https://www.image2url.com/r2/…"
+                          value={coverUrl}
+                          onChange={(e) => setCoverUrl(e.target.value)}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={setCoverLink}
+                        className="btn-press rounded-xl bg-ink-900 px-4 text-xs font-bold text-card hover:bg-ink-700"
+                      >
+                        تعيين
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (coverUrl.trim()) {
-                          setCover(coverUrl.trim());
-                          setCoverUrl("");
-                          toast("تم تعيين صورة المقال");
-                        }
-                      }}
-                      className="btn-press rounded-xl bg-ink-900 px-4 text-xs font-bold text-card hover:bg-ink-700"
-                    >
-                      تعيين
-                    </button>
-                  </div>
+                    <p className="mt-1.5 text-[11px] leading-5 text-ink-400">
+                      ارفع الصورة على Image2URL ثم الصق الـ Direct Link هنا.
+                    </p>
+                  </>
                 )}
               </div>
               <div>

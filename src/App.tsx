@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { StoreProvider, useStore } from "./store";
 import Sidebar from "./components/Sidebar";
 import { Marquee, Modal, ScrambleText, SyncBadge, Toasts, Ticks } from "./components/ui";
@@ -17,14 +17,7 @@ import {
   type FirebaseConfig,
 } from "./firebase";
 import { LOGO_URL, formatTime, type View, type ViewName } from "./types";
-import {
-  PROVIDER_LABEL,
-  loadUploadCfg,
-  saveUploadCfg,
-  uploadImage,
-  type Provider,
-  type UploadCfg,
-} from "./upload";
+import { IMAGE_HOST_URL } from "./imageHelp";
 
 const SECTIONS: Record<ViewName, { t: string; en: string; s: string }> = {
   overview: { t: "نظرة عامة", en: "OVERVIEW", s: "كل ما يخص فريق دوبلكس في لوحة واحدة" },
@@ -141,156 +134,7 @@ function CodeBlock({ code, dir = "ltr" }: { code: string; dir?: "ltr" | "rtl" })
   );
 }
 
-type CloudTab = "steps" | "upload" | "structure" | "rules";
-
-/* تبويب إعدادات رفع الصور وتحويلها لروابط مباشرة */
-function UploadSettingsTab() {
-  const { toast } = useStore();
-  const [cfg, setCfg] = useState<UploadCfg>(loadUploadCfg);
-  const [testing, setTesting] = useState(false);
-  const [testUrl, setTestUrl] = useState("");
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const update = (patch: Partial<UploadCfg>) => {
-    const next = { ...cfg, ...patch };
-    setCfg(next);
-    saveUploadCfg(next);
-  };
-
-  const onTest = async (files: File[]) => {
-    if (!files[0]) return;
-    setTesting(true);
-    setTestUrl("");
-    const r = await uploadImage(files[0]);
-    setTesting(false);
-    setTestUrl(r.url);
-    if (r.via === "local") toast("تعذّر الوصول للمزوّدات — الرابط محلي مؤقت", "error");
-    else toast(`نجح الرفع عبر ${PROVIDER_LABEL[r.via]}`);
-  };
-
-  const providers: { key: Provider; name: string; desc: string }[] = [
-    { key: "freeimage", name: "Freeimage", desc: "يعمل فورًا بمفتاح تجريبي عام — مناسب للتجربة السريعة." },
-    { key: "imgbb", name: "ImgBB", desc: "مفتاح مجاني من api.imgbb.com — الموصى به للإنتاج (روابط دائمة)." },
-    { key: "catbox", name: "Catbox", desc: "رفع مجهول بدون أي مفاتيح — بديل احتياطي." },
-  ];
-
-  return (
-    <div className="pop mt-4 space-y-4">
-      <p className="text-[12px] leading-6 text-ink-500">
-        أي صورة ترفعها في المشروع أو المقال <b className="font-display text-ink-800">تُحوَّل تلقائيًا لرابط مباشر</b> على
-        خدمة الاستضافة المختارة، والرابط هو الذي يُحفظ في الداشبورد ويتزامن مع Firestore — وليس ملف الصورة نفسه،
-        فيبقى المستند خفيفًا وسريعًا.
-      </p>
-
-      <div className="grid gap-2.5 sm:grid-cols-3">
-        {providers.map((p) => {
-          const sel = cfg.provider === p.key;
-          return (
-            <button
-              key={p.key}
-              onClick={() => {
-                update({ provider: p.key });
-                toast(`المزوّد الافتراضي: ${p.name}`, "info");
-              }}
-              className={`btn-press rounded-xl border-2 p-4 text-start transition-all duration-200 ${
-                sel ? "border-brand bg-brand-soft/45 shadow-sm" : "border-line bg-card hover:border-ink-300"
-              }`}
-            >
-              <span className="flex items-center justify-between">
-                <span className="font-display text-[13px] font-extrabold text-ink-900">{p.name}</span>
-                <span
-                  className={`flex h-4.5 w-4.5 items-center justify-center rounded-full transition-colors ${
-                    sel ? "bg-brand text-card" : "border-2 border-ink-200 text-transparent"
-                  }`}
-                >
-                  <I n="check" className="h-2.5 w-2.5" />
-                </span>
-              </span>
-              <span className="mt-1.5 block text-[11px] leading-5 text-ink-400">{p.desc}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {cfg.provider === "imgbb" && (
-        <div className="pop">
-          <label className="lbl" htmlFor="imgbb-key">
-            مفتاح ImgBB المجاني
-          </label>
-          <input
-            id="imgbb-key"
-            dir="ltr"
-            className="inp !font-mono !text-[12px]"
-            placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-            value={cfg.imgbbKey}
-            onChange={(e) => update({ imgbbKey: e.target.value })}
-          />
-          <p className="mt-1.5 text-[11px] text-ink-400">
-            سجّل مجانًا في
-            <a href="https://api.imgbb.com" target="_blank" rel="noreferrer" className="mx-1 font-bold text-brand hover:underline">
-              api.imgbb.com
-            </a>
-            وانسخ الـ API Key — يُحفظ في متصفحك فقط.
-          </p>
-        </div>
-      )}
-
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-dashed border-line bg-card px-4 py-3.5">
-        <button
-          onClick={() => fileRef.current?.click()}
-          disabled={testing}
-          className="btn-press flex items-center gap-2 rounded-xl bg-gold px-5 py-2.5 font-display text-[13px] font-extrabold text-ink-950 hover:brightness-105 disabled:opacity-60"
-        >
-          {testing ? (
-            <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink-950/30 border-t-ink-950" />
-              جارٍ الرفع…
-            </>
-          ) : (
-            <>
-              <I n="upload" className="h-4 w-4" />
-              اختبار الرفع بصورة
-            </>
-          )}
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void onTest([f]);
-            e.target.value = "";
-          }}
-        />
-        <span className="text-[11px] text-ink-400">ارفع أي صورة للتأكد أن المزوّد يعمل</span>
-      </div>
-
-      {testUrl && (
-        <div className="pop rounded-xl border border-brand/30 bg-brand-soft/35 px-4 py-3.5">
-          <p className="font-display text-[12px] font-extrabold text-brand-deep">
-            ✓ الرابط المباشر جاهز — هذا ما يُحفظ في الداشبورد وFirestore:
-          </p>
-          <div className="mt-2 flex items-center gap-2">
-            <code dir="ltr" className="min-w-0 flex-1 truncate rounded-lg bg-card px-3 py-2 font-mono text-[11px] font-bold text-ink-700">
-              {testUrl}
-            </code>
-            <CopyBtn text={testUrl} label="نسخ" />
-          </div>
-        </div>
-      )}
-
-      <div className="rounded-xl border border-gold/30 bg-gold-soft/40 px-4 py-3.5">
-        <p className="flex items-start gap-2 text-[12px] font-bold leading-6 text-ink-700">
-          <I n="bulb" className="mt-0.5 h-4 w-4 shrink-0 text-gold-deep" />
-          لو فشل المزوّد المختار، تُجرَّب البدائل تلقائيًا بالترتيب (Freeimage ← Catbox)، ولو فشلوا
-          جميعًا تُحفظ الصورة محليًا مؤقتًا مع تنبيه — لن تفقد الصورة أبدًا.
-        </p>
-      </div>
-    </div>
-  );
-}
+type CloudTab = "steps" | "structure" | "rules";
 
 /* نافذة إعدادات فايربيز */
 function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -328,9 +172,8 @@ function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
     onClose();
   };
 
-  const tabs: { key: CloudTab; label: string; icon: "sync" | "image" | "sliders" | "target" }[] = [
+  const tabs: { key: CloudTab; label: string; icon: "sync" | "sliders" | "target" }[] = [
     { key: "steps", label: "خطوات التجهيز", icon: "sync" },
-    { key: "upload", label: "رفع الصور", icon: "image" },
     { key: "structure", label: "هيكل البيانات", icon: "sliders" },
     { key: "rules", label: "قواعد الأمان", icon: "target" },
   ];
@@ -511,8 +354,6 @@ function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
             </div>
           )}
 
-          {tab === "upload" && <UploadSettingsTab />}
-
           {tab === "structure" && (
             <div className="pop mt-4 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -543,8 +384,8 @@ function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
               <div className="rounded-xl border border-coral/25 bg-coral-soft/35 px-4 py-3.5">
                 <p className="flex items-start gap-2 text-[12px] font-bold leading-6 text-ink-700">
                   <I n="image" className="mt-0.5 h-4 w-4 shrink-0 text-coral" />
-                  حد المستند الواحد في Firestore هو 1MB — لذلك الداشبورد تحوّل أي صورة
-                  ترفعها تلقائيًا لرابط مباشر (من تبويب «رفع الصور») ولا تخزّن الملف نفسه.
+                  حد المستند الواحد في Firestore هو 1MB — لذلك كل الصور تُضاف كروابط مباشرة
+                  من موقع <a href={IMAGE_HOST_URL} target="_blank" rel="noreferrer" className="font-bold text-brand hover:underline">Image2URL</a> ولا يُخزَّن أي ملف في القاعدة.
                 </p>
               </div>
             </div>

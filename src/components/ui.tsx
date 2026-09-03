@@ -2,7 +2,6 @@ import {
   useEffect,
   useRef,
   useState,
-  type DragEvent,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
@@ -311,107 +310,7 @@ export function Toasts() {
 }
 
 /* تحويل ملف صورة إلى DataURL مع تصغير الأبعاد حفاظًا على مساحة التخزين */
-export function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("read failed"));
-    reader.onload = () => {
-      const src = String(reader.result);
-      const img = new Image();
-      img.onload = () => {
-        const MAX = 1280;
-        if (img.width <= MAX && img.height <= MAX) return resolve(src);
-        const scale = MAX / Math.max(img.width, img.height);
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return resolve(src);
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL(file.type === "image/png" ? "image/png" : "image/jpeg", 0.85));
-      };
-      img.onerror = () => resolve(src);
-      img.src = src;
-    };
-    reader.readAsDataURL(file);
-  });
-}
 
-/* منطقة رفع بالسحب والإفلات — تتحول تلقائيًا لروابط مباشرة */
-export function Dropzone({
-  onFiles,
-  label,
-  sub,
-  busy = false,
-}: {
-  onFiles: (files: File[]) => void;
-  label: string;
-  sub?: string;
-  busy?: boolean;
-}) {
-  const [over, setOver] = useState(false);
-  const onDrop = (e: DragEvent) => {
-    e.preventDefault();
-    setOver(false);
-    if (busy) return;
-    const imgs = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
-    if (imgs.length) onFiles(imgs);
-  };
-  return (
-    <label
-      onDragOver={(e) => {
-        e.preventDefault();
-        if (!busy) setOver(true);
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={onDrop}
-      className={`group flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed px-6 py-8 text-center transition-all duration-200 ${
-        busy ? "pointer-events-none opacity-80" : ""
-      } ${
-        over
-          ? "border-brand bg-brand-soft/50 scale-[1.01]"
-          : busy
-            ? "border-gold/60 bg-gold-soft/40"
-            : "border-ink-200 bg-ink-50/40 hover:border-brand/60 hover:bg-brand-soft/25"
-      }`}
-    >
-      {busy ? (
-        <>
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-card text-brand shadow-sm">
-            <span className="h-5 w-5 animate-spin rounded-full border-2 border-brand/30 border-t-brand" />
-          </span>
-          <span className="mt-3 font-display text-sm font-bold text-brand-deep">جارٍ الرفع للسحابة…</span>
-          <span className="mt-1 text-[11px] text-ink-400">الصورة بتتحول لرابط مباشر</span>
-        </>
-      ) : (
-        <>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={(e) => {
-              const files = e.target.files ? Array.from(e.target.files) : [];
-              if (files.length) onFiles(files);
-              e.target.value = "";
-            }}
-          />
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-card text-brand shadow-sm transition-transform duration-300 group-hover:-translate-y-1">
-            <I n="upload" className="h-5 w-5" />
-          </span>
-          <span className="mt-3 font-display text-sm font-bold text-ink-700">{label}</span>
-          <span className="mt-1 flex items-center gap-1.5 text-[11px] text-ink-400">
-            {sub ?? "اسحب الصور هنا أو اضغط للاختيار"}
-            <span className="flex items-center gap-1 rounded-md bg-brand-soft px-1.5 py-0.5 text-[9px] font-bold text-brand-deep">
-              <I n="link" className="h-2.5 w-2.5" />
-              يتحول لرابط مباشر
-            </span>
-          </span>
-        </>
-      )}
-    </label>
-  );
-}
 
 /* مصغّرة صورة مع نسخ الرابط المباشر وزر حذف */
 export function Thumb({
