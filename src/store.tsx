@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { onSnapshot, setDoc } from "firebase/firestore";
+import { getDoc, onSnapshot, setDoc } from "firebase/firestore";
 import type { Article, Db, Field, Project, ToastMsg } from "./types";
 import { seedDb } from "./seed";
 import {
@@ -155,23 +155,37 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     setSync({ mode: "connecting", projectId: cfg.projectId });
 
-    /* مهلة: لو التعليق طال بدون استجابة نوضح السبب */
+    /* مهلة: لو المستمع لم يستجب نجسّ النبض ونستخرج الخطأ الحقيقي */
     const timeoutId = window.setTimeout(() => {
-      setSync((s) =>
-        s.mode === "connecting"
-          ? {
-              mode: "error",
-              projectId: cfg.projectId,
-              error:
-                "انتهت مهلة الاتصال — تأكد من الإنترنت، أو اضغط «تشخيص الاتصال» لمعرفة الخطوة المتعثرة.",
-            }
-          : s
-      );
-    }, 15000);
+      void (async () => {
+        try {
+          await Promise.race([
+            getDoc(ref),
+            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 10000)),
+          ]);
+          setSync((s) =>
+            s.mode === "connecting"
+              ? {
+                  mode: "error",
+                  projectId: cfg.projectId,
+                  error:
+                    "الاتصال بطيء جدًا — تأكد من الإنترنت ثم أعد المحاولة من نافذة فايربيز.",
+                }
+              : s
+          );
+        } catch (e) {
+          setSync({ mode: "error", projectId: cfg.projectId, error: fbMessage(e) });
+        }
+      })();
+    }, 12000);
 
     void (async () => {
-      /* الدخول المجهول أولًا وقبل أي قراءة — قواعد الإنتاج تشترط request.auth */
-      await ensureSignedIn();
+      /* الدخول المجهول أولًا وقبل أي قراءة — قواعد الإنتاج تشترط request.auth.
+         بمهلة 8 ثوانٍ حتى لا يتعطل الاتصال إن كانت خدمة المصادقة بطيئة أو محجوبة */
+      await Promise.race([
+        ensureSignedIn(),
+        new Promise((r) => setTimeout(r, 8000)),
+      ]);
 
       unsubRef.current = onSnapshot(
         ref,

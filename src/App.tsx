@@ -12,6 +12,8 @@ import { I } from "./icons";
 import {
   DEFAULT_CONFIG,
   DOC_PATH,
+  getEffectiveConfig,
+  isAutoConnectDisabled,
   isValidConfig,
   loadStoredConfig,
   runDiagnostics,
@@ -19,6 +21,21 @@ import {
   type DiagStep,
   type FirebaseConfig,
 } from "./firebase";
+
+const CONSOLE_LINKS: { label: string; url: string }[] = [
+  {
+    label: "قواعد الأمان",
+    url: "https://console.firebase.google.com/project/dublex-26/firestore/rules",
+  },
+  {
+    label: "قاعدة Firestore",
+    url: "https://console.firebase.google.com/project/dublex-26/firestore",
+  },
+  {
+    label: "الدخول المجهول",
+    url: "https://console.firebase.google.com/project/dublex-26/authentication/providers",
+  },
+];
 import { LOGO_URL, formatTime, type View, type ViewName } from "./types";
 import { IMAGE_HOST_URL } from "./imageHelp";
 
@@ -246,6 +263,24 @@ function CloudModal({
           كل أعضاء الفريق. يمكنك تغيير الإعدادات من هنا إن أردت.
         </p>
 
+        {sync.mode === "local" && isAutoConnectDisabled() && (
+          <div className="pop mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-gold/40 bg-gold-soft/50 px-4 py-3">
+            <span className="flex-1 text-[12px] font-bold leading-6 text-ink-700">
+              الاتصال التلقائي متوقف لأنك اخترت «العودة للتخزين المحلي» سابقًا.
+            </span>
+            <button
+              onClick={() => {
+                connectFirebase(getEffectiveConfig());
+                toast("جارِ إعادة الاتصال بفايربيز…", "info");
+              }}
+              className="btn-press flex items-center gap-2 rounded-xl bg-gold px-4 py-2 font-display text-[12px] font-extrabold text-ink-950 hover:brightness-105"
+            >
+              <I n="sync" className="h-4 w-4" />
+              إعادة الاتصال الآن
+            </button>
+          </div>
+        )}
+
         <div className="mt-4 flex items-center gap-2 rounded-xl bg-ink-50/70 px-4 py-2.5">
           <span
             className={`h-2.5 w-2.5 rounded-full ${
@@ -267,6 +302,22 @@ function CloudModal({
                   ? `خطأ: ${sync.error ?? "راجع الإعدادات"}`
                   : "غير متصل — البيانات تُحفظ محليًا في متصفحك"}
           </span>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="text-[11px] font-bold text-ink-400">روابط مباشرة للكونسول:</span>
+          {CONSOLE_LINKS.map((l) => (
+            <a
+              key={l.url}
+              href={l.url}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-press flex items-center gap-1.5 rounded-full border border-ink-200 bg-card px-3 py-1.5 text-[11px] font-bold text-ink-600 transition-colors hover:border-brand hover:text-brand"
+            >
+              <I n="link" className="h-3 w-3" />
+              {l.label}
+            </a>
+          ))}
         </div>
 
         <label className="lbl mt-5" htmlFor="fb-cfg">
@@ -342,6 +393,21 @@ function CloudModal({
                 </li>
               ))}
             </ol>
+          )}
+          {diagSteps && diagSteps.some((s) => !s.ok) && (
+            <div className="pop mt-3 rounded-xl border border-gold/40 bg-gold-soft/50 px-4 py-3">
+              <p className="text-[11px] font-bold leading-6 text-ink-700">
+                نفّذ الإصلاح المذكور في الخطوة الحمراء من روابط الكونسول بالأعلى، ثم أعد
+                «فحص الاتصال» — وعند نجاح كل الخطوات اضغط «اختبار وتفعيل المزامنة».
+              </p>
+            </div>
+          )}
+          {diagSteps && diagSteps.every((s) => s.ok) && sync.mode !== "cloud" && (
+            <div className="pop mt-3 flex items-center gap-3 rounded-xl border border-brand/30 bg-brand-soft/40 px-4 py-3">
+              <p className="flex-1 text-[11px] font-bold leading-6 text-ink-700">
+                كل الخطوات سليمة — اضغط الزر بالأسفل لتفعيل المزامنة الآن.
+              </p>
+            </div>
           )}
         </div>
 

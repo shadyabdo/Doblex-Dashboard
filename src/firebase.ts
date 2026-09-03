@@ -1,6 +1,6 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getAuth, signInAnonymously } from "firebase/auth";
-import { doc, getDoc, getFirestore, type Firestore } from "firebase/firestore";
+import { doc, getDoc, getFirestore, setDoc, type Firestore } from "firebase/firestore";
 
 export interface FirebaseConfig {
   apiKey: string;
@@ -146,19 +146,22 @@ export async function testConnection(
 
 export function fbMessage(e: unknown): string {
   const code = String((e as { code?: string })?.code ?? "");
+  const msg = e instanceof Error ? e.message : "";
   if (code.includes("permission-denied"))
-    return "قواعد الأمان رفضت الوصول (وضع الإنتاج). افتح تبويب «قواعد الأمان» وانشر إحدى النسختين، وفعّل الدخول المجهول من Authentication للنسخة الموصى بها.";
-  if (code.includes("failed-precondition"))
-    return "قاعدة Firestore غير جاهزة — أنشئها من: Build ← Firestore Database ← Create database.";
+    return "قواعد الأمان رفضت الوصول. افتح نافذة فايربيز ← تبويب «قواعد الأمان» وانشر إحدى النسختين — وإن اخترت الموصى بها، فعّل الدخول المجهول من Authentication ← Anonymous.";
+  if (
+    code.includes("failed-precondition") ||
+    code.includes("not-found") ||
+    /does not exist|has not been used|not been enabled/i.test(msg)
+  )
+    return "قاعدة Firestore غير جاهزة — أنشئها من الكونسول: Build ← Firestore Database ← Create database، واتركها على وضع الإنتاج.";
   if (code.includes("unauthenticated"))
-    return "الكتابة تتطلب مستخدمًا — فعّل الدخول المجهول من: Authentication ← Sign-in method ← Anonymous.";
+    return "الكتابة تتطلب مستخدمًا — فعّل الدخول المجهول من: Authentication ← Sign-in method ← Anonymous ← Enable.";
   if (code.includes("unavailable"))
-    return "تعذّر الاتصال بخدمة فايربيز — تحقق من الإنترنت.";
-  if (e instanceof Error && e.message === "timeout")
-    return "انتهت مهلة الاتصال — تأكد من صحة الإعدادات ومعرف المشروع.";
-  if (code.includes("not-found"))
-    return "لم يتم العثور على قاعدة Firestore — أنشئها أولًا من وحدة تحكم فايربيز.";
-  return e instanceof Error ? e.message : "حدث خطأ غير متوقع.";
+    return "تعذّر الاتصال بخدمة فايربيز — تحقق من اتصال الإنترنت.";
+  if (msg === "timeout")
+    return "انتهت مهلة الاتصال — تأكد من الإنترنت وأن قاعدة Firestore منشأة، ثم شغّل «فحص الاتصال» من نافذة فايربيز لمعرفة الخطوة المتعثرة.";
+  return msg || "حدث خطأ غير متوقع.";
 }
 
 export interface DiagStep {
@@ -212,7 +215,6 @@ export async function runDiagnostics(cfg: FirebaseConfig): Promise<DiagStep[]> {
   if (!readOk) return steps;
 
   try {
-    const { setDoc } = await import("firebase/firestore");
     await race(setDoc(ref, { _diag: Date.now() }, { merge: true }));
     steps.push({ step: "الكتابة في Firestore (المزامنة الفعلية)", ok: true });
   } catch (e) {
