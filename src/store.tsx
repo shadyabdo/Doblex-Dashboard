@@ -155,44 +155,64 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     setSync({ mode: "connecting", projectId: cfg.projectId });
 
-    /* الدخول المجهول أولًا — يدعم قواعد وضع الإنتاج */
-    void ensureSignedIn();
+    /* مهلة: لو التعليق طال بدون استجابة نوضح السبب */
+    const timeoutId = window.setTimeout(() => {
+      setSync((s) =>
+        s.mode === "connecting"
+          ? {
+              mode: "error",
+              projectId: cfg.projectId,
+              error:
+                "انتهت مهلة الاتصال — تأكد من الإنترنت، أو اضغط «تشخيص الاتصال» لمعرفة الخطوة المتعثرة.",
+            }
+          : s
+      );
+    }, 15000);
 
-    unsubRef.current = onSnapshot(
-      ref,
-      (snap) => {
-        if (migrationPendingRef.current) return; /* انتظر اكتمال المسح الأول */
-        if (snap.exists()) {
-          const data = snap.data() as Db;
-          const ts = data.updatedAt ?? 0;
-          if (!writingRef.current && ts > remoteTsRef.current) {
-            remoteTsRef.current = ts;
-            setDb({
-              fields: data.fields ?? [],
-              projects: data.projects ?? [],
-              articles: data.articles ?? [],
-            });
+    void (async () => {
+      /* الدخول المجهول أولًا وقبل أي قراءة — قواعد الإنتاج تشترط request.auth */
+      await ensureSignedIn();
+
+      unsubRef.current = onSnapshot(
+        ref,
+        (snap) => {
+          window.clearTimeout(timeoutId);
+          if (migrationPendingRef.current) return; /* انتظر اكتمال المسح الأول */
+          if (snap.exists()) {
+            const data = snap.data() as Db;
+            const ts = data.updatedAt ?? 0;
+            if (!writingRef.current && ts > remoteTsRef.current) {
+              remoteTsRef.current = ts;
+              setDb({
+                fields: data.fields ?? [],
+                projects: data.projects ?? [],
+                articles: data.articles ?? [],
+              });
+            }
+          } else {
+            /* المستند لم يُنشأ بعد: نرفع بياناتنا المحلية */
+            window.setTimeout(() => {
+              if (!writingRef.current && !migrationPendingRef.current)
+                pushToCloud(dbLatestRef.current);
+            }, 1200);
           }
-        } else {
-          /* المستند لم يُنشأ بعد: نرفع بياناتنا المحلية */
-          window.setTimeout(() => {
-            if (!writingRef.current && !migrationPendingRef.current)
-              pushToCloud(dbLatestRef.current);
-          }, 1200);
+          setSync((s) =>
+            s.mode === "error"
+              ? s
+              : { mode: "cloud", projectId: cfg.projectId, lastSync: Date.now() }
+          );
+        },
+        (e) => {
+          window.clearTimeout(timeoutId);
+          setSync({ mode: "error", projectId: cfg.projectId, error: fbMessage(e) });
         }
-        setSync((s) =>
-          s.mode === "error"
-            ? s
-            : { mode: "cloud", projectId: cfg.projectId, lastSync: Date.now() }
-        );
-      },
-      (e) => setSync({ mode: "error", error: fbMessage(e) })
-    );
+      );
 
-    /* أول فتح بعد التحديث: دفع الحالة الفارغة لمسح أي محتوى تجريبي قديم من السحابة */
-    if (migrationPendingRef.current) {
-      window.setTimeout(() => pushToCloud(dbLatestRef.current), 1000);
-    }
+      /* أول فتح بعد التحديث: دفع الحالة الفارغة لمسح أي محتوى تجريبي قديم من السحابة */
+      if (migrationPendingRef.current) {
+        window.setTimeout(() => pushToCloud(dbLatestRef.current), 1000);
+      }
+    })();
   };
 
   /* الحفظ المحلي + الرفع للسحابة عند أي تغيير */

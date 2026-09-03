@@ -148,6 +148,10 @@ export function fbMessage(e: unknown): string {
   const code = String((e as { code?: string })?.code ?? "");
   if (code.includes("permission-denied"))
     return "قواعد الأمان رفضت الوصول (وضع الإنتاج). افتح تبويب «قواعد الأمان» وانشر إحدى النسختين، وفعّل الدخول المجهول من Authentication للنسخة الموصى بها.";
+  if (code.includes("failed-precondition"))
+    return "قاعدة Firestore غير جاهزة — أنشئها من: Build ← Firestore Database ← Create database.";
+  if (code.includes("unauthenticated"))
+    return "الكتابة تتطلب مستخدمًا — فعّل الدخول المجهول من: Authentication ← Sign-in method ← Anonymous.";
   if (code.includes("unavailable"))
     return "تعذّر الاتصال بخدمة فايربيز — تحقق من الإنترنت.";
   if (e instanceof Error && e.message === "timeout")
@@ -155,4 +159,65 @@ export function fbMessage(e: unknown): string {
   if (code.includes("not-found"))
     return "لم يتم العثور على قاعدة Firestore — أنشئها أولًا من وحدة تحكم فايربيز.";
   return e instanceof Error ? e.message : "حدث خطأ غير متوقع.";
+}
+
+export interface DiagStep {
+  step: string;
+  ok: boolean;
+  note?: string;
+}
+
+const race = <T,>(p: Promise<T>, ms = 12000): Promise<T> =>
+  Promise.race([
+    p,
+    new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms)),
+  ]);
+
+/** فحص شامل للاتصال خطوة بخطوة — يحدد أين تتعطل المزامنة بالضبط */
+export async function runDiagnostics(cfg: FirebaseConfig): Promise<DiagStep[]> {
+  const steps: DiagStep[] = [];
+
+  const init = initFirebase(cfg);
+  steps.push({
+    step: "تهيئة تطبيق فايربيز بالإعدادات",
+    ok: init.ok,
+    note: init.ok ? undefined : init.error,
+  });
+  if (!init.ok) return steps;
+
+  const auth = await ensureSignedIn();
+  steps.push({
+    step: "الدخول المجهول (Anonymous Sign-in)",
+    ok: auth,
+    note: auth
+      ? undefined
+      : "مرفوض — فعّله من: Authentication ← Sign-in method ← Anonymous ← Enable (مطلوب للنسخة الموصى بها من القواعد)",
+  });
+
+  const ref = dbRef();
+  if (!ref) {
+    steps.push({ step: "إنشاء مرجع المستند", ok: false });
+    return steps;
+  }
+
+  let readOk = false;
+  try {
+    await race(getDoc(ref));
+    readOk = true;
+    steps.push({ step: "قراءة المستند من Firestore", ok: true });
+  } catch (e) {
+    steps.push({ step: "قراءة المستند من Firestore", ok: false, note: fbMessage(e) });
+  }
+
+  if (!readOk) return steps;
+
+  try {
+    const { setDoc } = await import("firebase/firestore");
+    await race(setDoc(ref, { _diag: Date.now() }, { merge: true }));
+    steps.push({ step: "الكتابة في Firestore (المزامنة الفعلية)", ok: true });
+  } catch (e) {
+    steps.push({ step: "الكتابة في Firestore (المزامنة الفعلية)", ok: false, note: fbMessage(e) });
+  }
+
+  return steps;
 }

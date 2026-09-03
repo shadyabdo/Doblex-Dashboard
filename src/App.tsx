@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StoreProvider, useStore } from "./store";
 import Sidebar from "./components/Sidebar";
 import { Marquee, Modal, ScrambleText, SyncBadge, Toasts, Ticks } from "./components/ui";
@@ -14,7 +14,9 @@ import {
   DOC_PATH,
   isValidConfig,
   loadStoredConfig,
+  runDiagnostics,
   testConnection,
+  type DiagStep,
   type FirebaseConfig,
 } from "./firebase";
 import { LOGO_URL, formatTime, type View, type ViewName } from "./types";
@@ -138,7 +140,15 @@ function CodeBlock({ code, dir = "ltr" }: { code: string; dir?: "ltr" | "rtl" })
 type CloudTab = "steps" | "structure" | "rules";
 
 /* نافذة إعدادات فايربيز */
-function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+function CloudModal({
+  open,
+  onClose,
+  initialTab = "steps",
+}: {
+  open: boolean;
+  onClose: () => void;
+  initialTab?: CloudTab;
+}) {
   const { sync, connectFirebase, disconnectFirebase, toast } = useStore();
   const [raw, setRaw] = useState(() => {
     const c = loadStoredConfig();
@@ -146,7 +156,35 @@ function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
-  const [tab, setTab] = useState<CloudTab>("steps");
+  const [tab, setTab] = useState<CloudTab>(initialTab);
+  const [diagnosing, setDiagnosing] = useState(false);
+  const [diagSteps, setDiagSteps] = useState<DiagStep[] | null>(null);
+
+  useEffect(() => {
+    if (open) setTab(initialTab);
+  }, [open, initialTab]);
+
+  const diagnose = async () => {
+    setErr("");
+    let cfg: unknown;
+    try {
+      cfg = JSON.parse(raw);
+    } catch {
+      setErr("الصيغة ليست JSON صحيحة.");
+      return;
+    }
+    if (!isValidConfig(cfg)) {
+      setErr("تأكد من وجود apiKey و authDomain و projectId في الإعدادات.");
+      return;
+    }
+    setDiagnosing(true);
+    setDiagSteps(null);
+    const steps = await runDiagnostics(cfg as FirebaseConfig);
+    setDiagSteps(steps);
+    setDiagnosing(false);
+    const failed = steps.filter((s) => !s.ok);
+    if (failed.length === 0) toast("كل خطوات الاتصال سليمة ✔");
+  };
 
   const activate = async () => {
     setErr("");
@@ -256,6 +294,56 @@ function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
             {err}
           </p>
         )}
+
+        {/* تشخيص الاتصال خطوة بخطوة */}
+        <div className="mt-4 rounded-xl border border-ink-200 bg-ink-50/50 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="font-display text-[13px] font-extrabold text-ink-800">مش المزامنة شغّالة؟</p>
+              <p className="mt-0.5 text-[11px] text-ink-400">
+                الفحص يفحص 4 خطوات ويحدد بالضبط أين تتعطل.
+              </p>
+            </div>
+            <button
+              onClick={() => void diagnose()}
+              disabled={diagnosing}
+              className="btn-press flex items-center gap-2 rounded-xl bg-ink-900 px-4 py-2.5 font-display text-[12px] font-bold text-card hover:bg-ink-700 disabled:opacity-60"
+            >
+              {diagnosing ? (
+                <>
+                  <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-card/40 border-t-card" />
+                  جارِ الفحص…
+                </>
+              ) : (
+                <>
+                  <I n="target" className="h-4 w-4" />
+                  تشخيص الاتصال
+                </>
+              )}
+            </button>
+          </div>
+          {diagSteps && (
+            <ol className="pop mt-3.5 space-y-2 border-t border-dashed border-ink-200 pt-3.5">
+              {diagSteps.map((s, i) => (
+                <li key={s.step} className="flex items-start gap-2.5">
+                  <span
+                    className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
+                      s.ok ? "bg-brand text-card" : "bg-coral text-card"
+                    }`}
+                  >
+                    <I n={s.ok ? "check" : "x"} className="h-3 w-3" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className={`font-display text-[12px] font-bold ${s.ok ? "text-ink-700" : "text-coral"}`}>
+                      {i + 1}. {s.step}
+                    </p>
+                    {s.note && <p className="mt-0.5 text-[11px] leading-5 text-ink-500">{s.note}</p>}
+                  </div>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
 
         <div className="mt-4 flex flex-wrap gap-3">
           <button
@@ -457,7 +545,7 @@ function Shell() {
   const [view, setView] = useState<View>({ name: "overview" });
   const [menu, setMenu] = useState(false);
   const [cloudOpen, setCloudOpen] = useState(false);
-  const { db } = useStore();
+  const { db, sync } = useStore();
 
   const go = (v: View) => {
     setView(v);
@@ -556,7 +644,11 @@ function Shell() {
         </footer>
       </div>
 
-      <CloudModal open={cloudOpen} onClose={() => setCloudOpen(false)} />
+      <CloudModal
+        open={cloudOpen}
+        onClose={() => setCloudOpen(false)}
+        initialTab={sync.mode === "error" ? "rules" : "steps"}
+      />
       <Toasts />
     </div>
   );
