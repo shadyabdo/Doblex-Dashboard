@@ -89,6 +89,132 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
     { label: "إنجاز موثّق", en: "RESULTS", value: totalAch, icon: "trophy", tint: "text-coral", iconBg: "bg-coral-soft text-coral" },
   ];
 
+  const dbEmpty =
+    db.fields.length === 0 && db.projects.length === 0 && db.articles.length === 0;
+
+  /* لوحة البداية — تظهر عندما تكون الداشبورد فارغة تمامًا */
+  if (dbEmpty) {
+    const steps: {
+      n: string;
+      t: string;
+      d: string;
+      icon: "layers" | "briefcase" | "doc";
+      v: View;
+      cta: string;
+    }[] = [
+      {
+        n: "01",
+        t: "أضف أول مجال",
+        d: "المجالات هي خطوط عمل الفريق: ويب، تسويق رقمي، جرافيك، مونتاج… كل مشروع بيتنسب لمجال.",
+        icon: "layers",
+        v: { name: "fields" },
+        cta: "فتح المجالات",
+      },
+      {
+        n: "02",
+        t: "وثّق أول مشروع",
+        d: "اختر المجال، أضف الصور بروابط Image2URL، وسجّل الأهداف والإنجازات بالأرقام.",
+        icon: "briefcase",
+        v: { name: "project-form" },
+        cta: "إضافة مشروع",
+      },
+      {
+        n: "03",
+        t: "اكتب أول مقال",
+        d: "شارك معرفة الفريق مع كلمات مفتاحية دقيقة وصورة غلاف — ينشر على موقعكم مباشرة.",
+        icon: "doc",
+        v: { name: "article-form" },
+        cta: "كتابة مقال",
+      },
+    ];
+    return (
+      <div className="space-y-5">
+        <Reveal>
+          <div className="relative overflow-hidden rounded-xl bg-ink-950 px-6 py-10 sm:px-10">
+            <img
+              src={LOGO_URL}
+              alt=""
+              className="pointer-events-none absolute -bottom-10 -start-6 h-56 w-56 opacity-10 grayscale"
+            />
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.16]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(rgba(252,253,251,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(252,253,251,0.14) 1px, transparent 1px)",
+                backgroundSize: "34px 34px",
+              }}
+            />
+            <div className="relative max-w-2xl">
+              <p className="flex items-center gap-2 font-mono text-[11px] font-semibold tracking-[0.22em] text-gold">
+                <span className="inline-block h-2 w-2 bg-gold" />
+                00 / بداية جديدة
+              </p>
+              <h2 className="mt-3 font-display text-2xl font-extrabold leading-snug text-card sm:text-[32px]">
+                <span className="line-mask">لوحتك جاهزة… وفاضية</span>
+                <span className="caret ms-1 inline-block h-[0.9em] w-[3px] translate-y-[0.12em] bg-gold" />
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-8 text-ink-200">
+                مفيش محتوى تجريبي هنا — كل اللي هتشوفه هو شغل فريقك الحقيقي بس. أي حاجة
+                تضيفها بتتسجل فورًا في Firestore وتتشارك مع الفريق لحظيًا.
+              </p>
+              <div className="mt-5 inline-flex items-center gap-2.5 rounded-full border border-ink-700 bg-ink-900/70 px-4 py-2">
+                <span
+                  className={`h-2.5 w-2.5 rounded-full ${
+                    sync.mode === "cloud"
+                      ? "bg-brand pulse-dot text-brand"
+                      : sync.mode === "connecting"
+                        ? "bg-gold pulse-dot text-gold"
+                        : sync.mode === "error"
+                          ? "bg-coral"
+                          : "bg-gold"
+                  }`}
+                />
+                <span className="font-display text-[12px] font-bold text-ink-100">
+                  {sync.mode === "cloud"
+                    ? `متزامن مع Firestore — مشروع ${sync.projectId ?? "dublex-26"}`
+                    : sync.mode === "connecting"
+                      ? "جارِ الاتصال بفايربيز…"
+                      : sync.mode === "error"
+                        ? "خطأ بالاتصال — راجع قواعد الأمان"
+                        : "تخزين محلي — اربط فايربيز من الهيدر"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          {steps.map((s, i) => (
+            <Reveal key={s.n} delay={i * 110}>
+              <button
+                onClick={() => go(s.v)}
+                className="group relative h-full w-full overflow-hidden rounded-xl border border-line bg-card p-6 text-start transition-all duration-300 hover:-translate-y-1.5 hover:border-brand/50 hover:shadow-[0_24px_50px_-22px_rgba(11,36,28,0.35)]"
+              >
+                <Ticks className="text-ink-200 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <span className="pointer-events-none absolute -top-3 -end-1 font-mono text-[72px] font-bold leading-none text-ink-50 transition-colors duration-300 group-hover:text-gold-soft">
+                  {s.n}
+                </span>
+                <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-ink-900 text-gold transition-transform duration-300 group-hover:scale-110 group-hover:bg-brand group-hover:text-card">
+                  <I n={s.icon} className="h-5 w-5" />
+                </span>
+                <span className="relative mt-4 block font-display text-lg font-extrabold text-ink-900">
+                  {s.t}
+                </span>
+                <span className="relative mt-2 block text-[13px] leading-7 text-ink-500">
+                  {s.d}
+                </span>
+                <span className="relative mt-4 flex items-center gap-1.5 font-display text-[13px] font-bold text-brand transition-all duration-300 group-hover:gap-3">
+                  {s.cta}
+                  <I n="arrow" className="h-4 w-4" />
+                </span>
+              </button>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-5">
       {/* صف المؤشرات */}
@@ -322,6 +448,11 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
             </button>
           </div>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {recentProjects.length === 0 && (
+              <p className="col-span-full rounded-xl border border-dashed border-line bg-ink-50/50 px-4 py-6 text-center text-[13px] font-semibold text-ink-400">
+                لا مشاريع بعد — أضف أول مشروع وسيظهر هنا فورًا.
+              </p>
+            )}
             {recentProjects.map((p) => {
               const done = p.goals.filter((g) => g.done).length;
               const pct = p.goals.length ? Math.round((done / p.goals.length) * 100) : 0;

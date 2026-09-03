@@ -1,4 +1,5 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
+import { getAuth, signInAnonymously } from "firebase/auth";
 import { doc, getDoc, getFirestore, type Firestore } from "firebase/firestore";
 
 export interface FirebaseConfig {
@@ -13,7 +14,7 @@ export interface FirebaseConfig {
 const CFG_KEY = "dublex-fb-cfg";
 const OFF_KEY = "dublex-fb-off";
 
-/** إعدادات مشروع Dublex الرسمية — الاتصال التلقائي */
+/** إعدادات مشروع دوبلكس — مدمجة وجاهزة */
 export const DEFAULT_CONFIG: FirebaseConfig = {
   apiKey: "AIzaSyB6zdS1RbyPqbKjmArSyEtk2vyO3ErZ6og",
   authDomain: "dublex-26.firebaseapp.com",
@@ -22,28 +23,6 @@ export const DEFAULT_CONFIG: FirebaseConfig = {
   messagingSenderId: "252085069789",
   appId: "1:252085069789:web:38c7bdef155ad74838f834",
 };
-
-export function isAutoConnectDisabled(): boolean {
-  try {
-    return localStorage.getItem(OFF_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-export function setAutoConnectDisabled(v: boolean) {
-  try {
-    if (v) localStorage.setItem(OFF_KEY, "1");
-    else localStorage.removeItem(OFF_KEY);
-  } catch {
-    /* تجاهل */
-  }
-}
-
-/** الإعداد الفعّال: المحفوظ إن وُجد، وإلا إعدادات المشروع الرسمية */
-export function getEffectiveConfig(): FirebaseConfig {
-  return loadStoredConfig() ?? DEFAULT_CONFIG;
-}
 
 /** مسار مستند الداشبورد داخل Firestore */
 export const DOC_PATH: [string, string] = ["dashboards", "dublex-main"];
@@ -85,6 +64,28 @@ export function clearStoredConfig() {
   }
 }
 
+export function isAutoConnectDisabled(): boolean {
+  try {
+    return localStorage.getItem(OFF_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function setAutoConnectDisabled(v: boolean) {
+  try {
+    if (v) localStorage.setItem(OFF_KEY, "1");
+    else localStorage.removeItem(OFF_KEY);
+  } catch {
+    /* تجاهل */
+  }
+}
+
+/** الإعدادات الفعّالة: المحفوظة إن وُجدت، وإلا إعدادات المشروع المدمجة */
+export function getEffectiveConfig(): FirebaseConfig {
+  return loadStoredConfig() ?? DEFAULT_CONFIG;
+}
+
 let app: FirebaseApp | null = null;
 let fs: Firestore | null = null;
 
@@ -103,6 +104,23 @@ export function initFirebase(
   }
 }
 
+/**
+ * تسجيل دخول مجهول — مطلوب في وضع الإنتاج (Production)
+ * حتى تمر الكتابة عبر قواعد `request.auth != null`.
+ */
+export async function ensureSignedIn(): Promise<boolean> {
+  if (!app) return false;
+  try {
+    const auth = getAuth(app);
+    if (auth.currentUser) return true;
+    await signInAnonymously(auth);
+    return true;
+  } catch {
+    /* الدخول المجهول غير مفعّل — ستُعتمد القواعد المفتوحة إن وُجدت */
+    return false;
+  }
+}
+
 export function dbRef() {
   return fs ? doc(fs, DOC_PATH[0], DOC_PATH[1]) : null;
 }
@@ -112,6 +130,7 @@ export async function testConnection(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const init = initFirebase(cfg);
   if (!init.ok) return init;
+  await ensureSignedIn();
   const ref = dbRef();
   if (!ref) return { ok: false, error: "تعذّر إنشاء مرجع المستند" };
   try {
@@ -128,7 +147,7 @@ export async function testConnection(
 export function fbMessage(e: unknown): string {
   const code = String((e as { code?: string })?.code ?? "");
   if (code.includes("permission-denied"))
-    return "قواعد الأمان في Firestore رفضت الوصول — فعّل وضع الاختبار أو اسمح بالقراءة والكتابة.";
+    return "قواعد الأمان رفضت الوصول (وضع الإنتاج). افتح تبويب «قواعد الأمان» وانشر إحدى النسختين، وفعّل الدخول المجهول من Authentication للنسخة الموصى بها.";
   if (code.includes("unavailable"))
     return "تعذّر الاتصال بخدمة فايربيز — تحقق من الإنترنت.";
   if (e instanceof Error && e.message === "timeout")

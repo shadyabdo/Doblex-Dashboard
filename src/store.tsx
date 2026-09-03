@@ -12,6 +12,7 @@ import { seedDb } from "./seed";
 import {
   clearStoredConfig,
   dbRef,
+  ensureSignedIn,
   fbMessage,
   getEffectiveConfig,
   initFirebase,
@@ -21,7 +22,8 @@ import {
   type FirebaseConfig,
 } from "./firebase";
 
-const KEY = "dublex-db-v2";
+/* مفتاح تخزين جديد — بداية نظيفة بدون أي محتوى تجريبي */
+const KEY = "dublex-db-v3";
 
 const uid = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -62,23 +64,34 @@ interface StoreApi {
 const Ctx = createContext<StoreApi | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+  const firstRunRef = useRef<boolean>(
+    typeof localStorage !== "undefined" && localStorage.getItem(KEY) === null
+  );
+
   const [db, setDb] = useState<Db>(() => {
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const d = JSON.parse(raw) as Db;
-        if (d && Array.isArray(d.fields) && Array.isArray(d.projects)) return d;
+        if (
+          d &&
+          Array.isArray(d.fields) &&
+          Array.isArray(d.projects) &&
+          Array.isArray(d.articles)
+        )
+          return d;
       }
     } catch {
-      /* بيانات تالفة → نرجع للبذور */
+      /* بيانات تالفة → بداية نظيفة */
     }
     return seedDb;
   });
 
-  const [sync, setSync] = useState<SyncState>(() => {
-    if (isAutoConnectDisabled()) return { mode: "local" };
-    return { mode: "connecting", projectId: getEffectiveConfig().projectId };
-  });
+  const [sync, setSync] = useState<SyncState>(() =>
+    isAutoConnectDisabled()
+      ? { mode: "local" }
+      : { mode: "connecting", projectId: getEffectiveConfig().projectId }
+  );
 
   const [toasts, setToasts] = useState<ToastMsg[]>([]);
   const timers = useRef<Record<string, number>>({});
@@ -86,6 +99,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const syncRef = useRef(sync);
   const writingRef = useRef(false);
   const remoteTsRef = useRef(0);
+  /* أثناء الترحيل نتجاهل بيانات السحابة حتى يكتمل الدفع الأول (مسح التجريبي) */
+  const migrationPendingRef = useRef(firstRunRef.current);
   const unsubRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -114,6 +129,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setDoc(ref, { ...data, updatedAt: ts })
       .then(() => {
         writingRef.current = false;
+        migrationPendingRef.current = false;
         setSync((s) =>
           s.mode === "error" ? s : { mode: "cloud", projectId: s.projectId, lastSync: ts }
         );
@@ -138,9 +154,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return;
     }
     setSync({ mode: "connecting", projectId: cfg.projectId });
+
+    /* الدخول المجهول أولًا — يدعم قواعد وضع الإنتاج */
+    void ensureSignedIn();
+
     unsubRef.current = onSnapshot(
       ref,
       (snap) => {
+        if (migrationPendingRef.current) return; /* انتظر اكتمال المسح الأول */
         if (snap.exists()) {
           const data = snap.data() as Db;
           const ts = data.updatedAt ?? 0;
@@ -153,10 +174,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             });
           }
         } else {
-          // المستند لم يُنشأ بعد: نرفع بياناتنا المحلية كبذرة للسحابة
+          /* المستند لم يُنشأ بعد: نرفع بياناتنا المحلية */
           window.setTimeout(() => {
-            if (!writingRef.current) pushToCloud(dbLatestRef.current);
-          }, 1600);
+            if (!writingRef.current && !migrationPendingRef.current)
+              pushToCloud(dbLatestRef.current);
+          }, 1200);
         }
         setSync((s) =>
           s.mode === "error"
@@ -166,9 +188,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
       (e) => setSync({ mode: "error", error: fbMessage(e) })
     );
+
+    /* أول فتح بعد التحديث: دفع الحالة الفارغة لمسح أي محتوى تجريبي قديم من السحابة */
+    if (migrationPendingRef.current) {
+      window.setTimeout(() => pushToCloud(dbLatestRef.current), 1000);
+    }
   };
 
-  // الحفظ المحلي + الرفع للسحابة عند أي تغيير
+  /* الحفظ المحلي + الرفع للسحابة عند أي تغيير */
   useEffect(() => {
     dbLatestRef.current = db;
     try {
@@ -179,9 +206,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (syncRef.current.mode !== "cloud") return;
     const t = window.setTimeout(() => pushToCloud(db), 900);
     return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db]);
 
-  // عند الفتح: الاتصال التلقائي بمشروع دوبلكس ما لم يُعطَّل يدويًا
+  /* عند الفتح: الاتصال التلقائي بمشروع دوبلكس ما لم يُعطَّل يدويًا */
   useEffect(() => {
     if (!isAutoConnectDisabled()) activate(getEffectiveConfig());
     return () => unsubRef.current?.();

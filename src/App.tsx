@@ -312,21 +312,21 @@ function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
               <ol className="space-y-3.5">
                 {[
                   {
-                    h: "أنشئ مشروع فايربيز",
-                    p: "افتح وحدة التحكم وأنشئ مشروعًا جديدًا باسم الفريق (مثلًا dublex-team).",
-                    code: "https://console.firebase.google.com",
+                    h: "المشروع متصل بالفعل",
+                    p: "إعدادات dublex-26 مدمجة في الكود والاتصال يتم تلقائيًا عند الفتح — لا تحتاج أي لصق. تأكد فقط أن الشارة في الهيدر خضراء «متزامن».",
+                    code: "console.firebase.google.com",
                   },
                   {
-                    h: "أضف تطبيق ويب وانسخ الإعدادات",
-                    p: "من إعدادات المشروع (أيقونة الترس ← Project settings) اضغط على أيقونة الويب </> وسجّل التطبيق، ثم انسخ كائن firebaseConfig والصقه في الصندوق بالأعلى.",
+                    h: "أنشئ قاعدة Firestore (إن لم تكن موجودة)",
+                    p: "من القائمة الجانبية: Build ← Firestore Database ← Create database. وضع الإنتاج (Production) الذي فعّلته هو الصحيح — لا تنشئ أي Collection يدويًا، الداشبورد تبني كل شيء بنفسها.",
                   },
                   {
-                    h: "أنشئ قاعدة Firestore",
-                    p: "من القائمة الجانبية: Build ← Firestore Database ← Create database، واختر «Start in test mode» للتجربة. لن تحتاج إنشاء أي جدول أو عمود يدويًا.",
+                    h: "فعّل الدخول المجهول",
+                    p: "Authentication ← Sign-in method ← Anonymous ← Enable. الداشبورد تسجّل دخولًا مجهولًا تلقائيًا لتستطيع الكتابة في وضع الإنتاج.",
                   },
                   {
-                    h: "فعّل المزامنة من هنا",
-                    p: "اضغط «اختبار وتفعيل المزامنة». عند أول اتصال ستنشئ الداشبورد المستند تلقائيًا وترفع إليه بياناتك المحلية — ولن تكتب شيئًا يدويًا في القاعدة.",
+                    h: "انشر قواعد الأمان",
+                    p: "Firestore Database ← تبويب Rules ← الصق النسخة الموصى بها من تبويب «قواعد الأمان» هنا ← Publish. بعدها كل ما تضيفه من الداشبورد يظهر لحظيًا في المستند:",
                     code: `${DOC_PATH[0]} / ${DOC_PATH[1]}`,
                   },
                 ].map((s, i) => (
@@ -398,32 +398,53 @@ function CloudModal({ open, onClose }: { open: boolean; onClose: () => void }) {
 
           {tab === "rules" && (
             <div className="pop mt-4 space-y-4">
-              <div>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-display text-[13px] font-extrabold text-ink-800">
-                    وضع الاختبار — للتجربة (القاعدة تسمح للجميع)
-                  </p>
-                  <CopyBtn text={RULES_SAMPLE} />
-                </div>
-                <div className="mt-2">
-                  <CodeBlock code={RULES_SAMPLE} />
-                </div>
+              <div className="rounded-xl border border-brand/30 bg-brand-soft/35 px-4 py-3">
+                <p className="flex items-start gap-2 text-[12px] font-bold leading-6 text-ink-700">
+                  <I n="target" className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                  قاعدتك تعمل في وضع الإنتاج (Production) — ممتاز! انشر إحدى النسختين
+                  التاليتين من: Firestore Database ← تبويب Rules ← الصق ← Publish.
+                </p>
               </div>
+
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-display text-[13px] font-extrabold text-ink-800">
-                    للإنتاج — يشترط مستخدمًا مسجّل الدخول (Authentication)
+                  <p className="flex items-center gap-2 font-display text-[13px] font-extrabold text-ink-800">
+                    <span className="rounded-md bg-brand px-2 py-0.5 text-[10px] font-bold text-card">موصى به</span>
+                    قواعد آمنة — تشترط مستخدمًا مسجّل الدخول
                   </p>
-                  <CopyBtn text={RULES_LOCKED} />
+                  <CopyBtn text={RULES_LOCKED} label="نسخ القواعد" />
                 </div>
                 <div className="mt-2">
                   <CodeBlock code={RULES_LOCKED} />
                 </div>
+                <div className="mt-2.5 rounded-xl border border-dashed border-line bg-card px-4 py-3.5">
+                  <p className="font-display text-[12px] font-extrabold text-ink-800">
+                    خطوة واحدة قبلها — فعّل الدخول المجهول:
+                  </p>
+                  <p className="mt-1.5 text-[12px] leading-6 text-ink-500">
+                    Authentication ← Sign-in method ← <b>Anonymous</b> ← Enable.
+                    الداشبورد تسجّل دخولًا مجهولًا تلقائيًا عند الفتح، فتمر كتابتها عبر
+                    هذه القواعد ويبقى كل من خارجها محجوبًا تمامًا.
+                  </p>
+                </div>
               </div>
-              <p className="text-[12px] leading-6 text-ink-500">
-                الصق القواعد في: Firestore Database ← Rules ← Publish. وضع الاختبار يفتح
-                القاعدة 30 يومًا فقط — بدّلها بالقواعد المقفولة قبل الإطلاق الرسمي.
-              </p>
+
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="flex items-center gap-2 font-display text-[13px] font-extrabold text-ink-800">
+                    <span className="rounded-md bg-gold px-2 py-0.5 text-[10px] font-bold text-ink-950">سريع</span>
+                    قواعد مفتوحة — لمسار الداشبورد فقط (بدون تفعيل Authentication)
+                  </p>
+                  <CopyBtn text={RULES_SAMPLE} label="نسخ القواعد" />
+                </div>
+                <div className="mt-2">
+                  <CodeBlock code={RULES_SAMPLE} />
+                </div>
+                <p className="mt-2 text-[11px] leading-5 text-ink-400">
+                  تعمل فورًا بدون أي إعداد إضافي، لكنها تسمح لأي شخص يعرف المسار بالتعديل —
+                  مناسبة لمرحلة البناء فقط.
+                </p>
+              </div>
             </div>
           )}
         </div>
