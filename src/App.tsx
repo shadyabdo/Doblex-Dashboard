@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { StoreProvider, useStore } from "./store";
 import Sidebar from "./components/Sidebar";
 import { Marquee, Modal, ScrambleText, SyncBadge, Toasts, Ticks } from "./components/ui";
@@ -176,10 +176,50 @@ function CloudModal({
   const [tab, setTab] = useState<CloudTab>(initialTab);
   const [diagnosing, setDiagnosing] = useState(false);
   const [diagSteps, setDiagSteps] = useState<DiagStep[] | null>(null);
+  const [locked, setLocked] = useState(true);
+  const [unlockProgress, setUnlockProgress] = useState(0);
+  const holdRaf = useRef<number | null>(null);
+  const lastBlockToast = useRef(0);
 
   useEffect(() => {
     if (open) setTab(initialTab);
   }, [open, initialTab]);
+
+  useEffect(
+    () => () => {
+      if (holdRaf.current) cancelAnimationFrame(holdRaf.current);
+    },
+    []
+  );
+
+  const warnBlocked = (msg = "نسخ ممنوع — أكواد ربط فايربيز محمية") => {
+    const now = Date.now();
+    if (now - lastBlockToast.current < 1200) return;
+    lastBlockToast.current = now;
+    toast(`⛔ ${msg}`, "error");
+  };
+
+  const startUnlockHold = () => {
+    const started = performance.now();
+    const tick = () => {
+      const p = Math.min(100, ((performance.now() - started) / 1600) * 100);
+      setUnlockProgress(p);
+      if (p >= 100) {
+        setLocked(false);
+        setUnlockProgress(0);
+        toast("تم إلغاء القفل — أي تعديل في الأكواد الآن مسؤوليتك الكاملة", "info");
+        return;
+      }
+      holdRaf.current = requestAnimationFrame(tick);
+    };
+    holdRaf.current = requestAnimationFrame(tick);
+  };
+
+  const cancelUnlockHold = () => {
+    if (holdRaf.current) cancelAnimationFrame(holdRaf.current);
+    holdRaf.current = null;
+    setUnlockProgress(0);
+  };
 
   const diagnose = async () => {
     setErr("");
@@ -224,6 +264,7 @@ function CloudModal({
       return;
     }
     connectFirebase(cfg as FirebaseConfig);
+    setLocked(true);
     toast("تم الاتصال بفايربيز — المزامنة فعّالة");
     onClose();
   };
@@ -260,7 +301,7 @@ function CloudModal({
             dublex-26
           </code>
           وستُحفظ بياناتك (المجالات، المشاريع، المقالات) في Firestore لتُشارك لحظيًا مع
-          كل أعضاء الفريق. يمكنك تغيير الإعدادات من هنا إن أردت.
+          كل أعضاء الفريق. أكواد الربط مقفولة ومحمية ولا يفتحها إلا مطوّر الفريق.
         </p>
 
         {sync.mode === "local" && isAutoConnectDisabled() && (
@@ -320,24 +361,147 @@ function CloudModal({
           ))}
         </div>
 
-        <label className="lbl mt-5" htmlFor="fb-cfg">
-          إعدادات Firebase (JSON)
-        </label>
-        <textarea
-          id="fb-cfg"
-          dir="ltr"
-          className="inp min-h-[130px] !font-mono !text-[12px] !leading-6"
-          placeholder={`{
-  "apiKey": "AIzaSy...",
-  "authDomain": "my-app.firebaseapp.com",
-  "projectId": "my-app",
-  "storageBucket": "my-app.appspot.com",
-  "messagingSenderId": "123456789",
-  "appId": "1:123456789:web:abc123"
-}`}
-          value={raw}
-          onChange={(e) => setRaw(e.target.value)}
-        />
+        {/* تحذير عدم العبث بأكواد الربط */}
+        <div className="mt-5 overflow-hidden rounded-xl border-2 border-coral/40 shadow-sm">
+          <div
+            className="h-2.5 w-full"
+            style={{
+              background:
+                "repeating-linear-gradient(-45deg, var(--color-coral) 0 14px, var(--color-gold) 14px 28px)",
+            }}
+          />
+          <div className="flex items-start gap-3 bg-coral-soft/50 px-4 py-3.5">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-coral text-card">
+              <I n="alert" className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-display text-[13px] font-extrabold leading-6 text-coral">
+                تحذير: العبث بأكواد ربط فايربيز يتلف الداشبورد
+              </p>
+              <p className="mt-1 text-[11px] font-semibold leading-5 text-ink-600">
+                هذه الأكواد هي شريان الاتصال بين الداشبورد وقاعدة بيانات الفريق. أي تعديل أو
+                نسخ أو مشاركة لها قد يقطع المزامنة نهائيًا أو يعرّض البيانات للخطر. يُمنع
+                النسخ منعًا باتًا — لا يفتح القفل إلا مطوّر الفريق.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <label className="lbl !mb-0" htmlFor="fb-cfg">
+            أكواد ربط Firebase <span className="font-normal text-ink-400">(محمية)</span>
+          </label>
+          {locked ? (
+            <span className="flex items-center gap-1.5 rounded-full bg-coral-soft px-3 py-1 text-[11px] font-extrabold text-coral">
+              <I n="lock" className="h-3.5 w-3.5" />
+              مقفولة
+            </span>
+          ) : (
+            <button
+              onClick={() => {
+                setLocked(true);
+                toast("تمت إعادة قفل الأكواد", "info");
+              }}
+              className="btn-press flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-[11px] font-extrabold text-card hover:bg-brand-deep"
+            >
+              <I n="lock" className="h-3.5 w-3.5" />
+              إعادة القفل
+            </button>
+          )}
+        </div>
+
+        <div
+          className="relative mt-2 overflow-hidden rounded-xl border-2 transition-colors"
+          style={{ borderColor: locked ? "var(--color-coral)" : "var(--color-brand)" }}
+          onCopy={(e) => {
+            if (locked) {
+              e.preventDefault();
+              warnBlocked();
+            }
+          }}
+          onCut={(e) => {
+            if (locked) {
+              e.preventDefault();
+              warnBlocked();
+            }
+          }}
+          onContextMenu={(e) => {
+            if (locked) {
+              e.preventDefault();
+              warnBlocked("قائمة النسخ معطلة هنا — الأكواد محمية");
+            }
+          }}
+          onDragStart={(e) => {
+            if (locked) {
+              e.preventDefault();
+              warnBlocked("سحب الأكواد ممنوع");
+            }
+          }}
+        >
+          <textarea
+            id="fb-cfg"
+            dir="ltr"
+            readOnly={locked}
+            spellCheck={false}
+            className={`inp !rounded-none !border-0 min-h-[150px] !font-mono !text-[12px] !leading-6 focus:!shadow-none ${
+              locked ? "pointer-events-none select-none blur-[4px]" : ""
+            }`}
+            value={raw}
+            onChange={(e) => {
+              if (!locked) setRaw(e.target.value);
+            }}
+          />
+
+          {locked && (
+            <div
+              className="absolute inset-0 z-10 flex cursor-not-allowed flex-col items-center justify-center gap-2.5 text-center"
+              style={{
+                background:
+                  "repeating-linear-gradient(45deg, rgba(222,85,55,0.09) 0 16px, rgba(222,85,55,0.18) 16px 32px), rgba(222,85,55,0.08)",
+                backdropFilter: "blur(1px)",
+              }}
+              onClick={() => warnBlocked("ممنوع النسخ — هذه الأكواد محمية بقفل")}
+            >
+              <span className="pulse-dot flex h-13 w-13 items-center justify-center rounded-full bg-coral p-3.5 text-card shadow-lg shadow-coral/30">
+                <I n="lock" className="h-6 w-6" />
+              </span>
+              <p className="font-display text-lg font-extrabold tracking-tight text-coral">
+                ممنوع النسخ
+              </p>
+              <p className="max-w-[280px] text-[11px] font-bold leading-5 text-ink-700">
+                أكواد ربط فايربيز مقفولة ومحمية — النسخ أو التعديل أو المشاركة ممنوع،
+                والعبث بها يتلف الداشبورد.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          {locked ? (
+            <button
+              onPointerDown={startUnlockHold}
+              onPointerUp={cancelUnlockHold}
+              onPointerLeave={cancelUnlockHold}
+              className="btn-press relative flex items-center gap-2 overflow-hidden rounded-xl border-2 border-dashed border-ink-300 px-4 py-2.5 text-[12px] font-extrabold text-ink-600 transition-colors hover:border-gold hover:text-gold-deep"
+            >
+              <span
+                className="absolute inset-y-0 start-0 bg-gold/25 transition-none"
+                style={{ width: `${unlockProgress}%` }}
+              />
+              <I n="unlock" className="relative h-4 w-4" />
+              <span className="relative">
+                {unlockProgress > 0
+                  ? `استمر بالضغط… ${Math.round(unlockProgress)}%`
+                  : "أنا مطوّر الفريق — اضغط مطوّلًا لفتح القفل"}
+              </span>
+            </button>
+          ) : (
+            <p className="flex items-center gap-2 rounded-xl border border-gold/40 bg-gold-soft/50 px-4 py-2.5 text-[11px] font-extrabold text-gold-deep">
+              <I n="alert" className="h-4 w-4 shrink-0" />
+              القفل مفتوح — عدّل بحذر، ثم اضغط «اختبار وتفعيل» ليعاد القفل تلقائيًا.
+            </p>
+          )}
+        </div>
 
         {err && (
           <p className="pop mt-3 flex items-start gap-2 rounded-xl border border-coral/30 bg-coral-soft/50 px-4 py-3 text-[12px] font-bold leading-6 text-coral">
