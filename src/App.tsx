@@ -4,6 +4,7 @@ import Sidebar from "./components/Sidebar";
 import { Marquee, Modal, ScrambleText, SyncBadge, Toasts, Ticks } from "./components/ui";
 import Overview from "./views/Overview";
 import Fields from "./views/Fields";
+import FieldDetail from "./views/FieldDetail";
 import Projects from "./views/Projects";
 import ProjectForm from "./views/ProjectForm";
 import Articles from "./views/Articles";
@@ -42,6 +43,7 @@ import { IMAGE_HOST_URL } from "./imageHelp";
 const SECTIONS: Record<ViewName, { t: string; en: string; s: string }> = {
   overview: { t: "نظرة عامة", en: "OVERVIEW", s: "كل ما يخص فريق دوبلكس في لوحة واحدة" },
   fields: { t: "المجالات", en: "FIELDS", s: "خطوط عمل الفريق — أضف وعدّل واحذف" },
+  "field-detail": { t: "صفحة المجال", en: "FIELD PAGE", s: "مشاريع المجال وعداد مشاهداته" },
   projects: { t: "المشاريع", en: "PROJECTS", s: "أرشيف شغل الفريق بالأهداف والإنجازات" },
   "project-form": { t: "إضافة مشروع", en: "NEW PROJECT", s: "اختر المجال ثم أدخل بيانات المشروع" },
   articles: { t: "المقالات", en: "ARTICLES", s: "محتوى الفريق المعرفي وكلماته المفتاحية" },
@@ -77,6 +79,7 @@ const STRUCTURE_SAMPLE = `{
       "color": "#0E6E55",           // اللون الأساسي للمجال
       "soft": "#D9EAE2",            // نفس اللون بدرجة فاتحة للخلفيات
       "isVideo": true,              // اختياري — المجال يحتوي فيديوهات (تظهر خانة رابط الفيديو بمشاريعه)
+      "views": 1240,                // ★ عداد مشاهدات صفحة المجال — يقرأه ويزيده الموقع
       "createdAt": 1735689600000    // تاريخ الإضافة (مللي ثانية)
     }
   ],
@@ -118,6 +121,7 @@ const STRUCTURE_SAMPLE = `{
       "cover": "https://iili.io/…jpg",  // صورة المقال — رابط مباشر
       "published": true,             // false = مسودة
       "publishedAt": 1735689600000,  // ★ تاريخ النشر الفعلي — يقرأه الموقع (null للمسودات)
+      "views": 356,                  // ★ عداد مشاهدات صفحة المدونة — يقرأه ويزيده الموقع
       "readMins": 6,                 // يُحسب تلقائيًا من طول المحتوى
       "createdAt": 1735689600000
     }
@@ -696,14 +700,15 @@ function CloudModal({
               <CodeBlock code={STRUCTURE_SAMPLE} />
               <ul className="grid gap-2 text-[12px] leading-6 text-ink-500 sm:grid-cols-2">
                 <li className="rounded-xl border border-dashed border-line bg-card px-3.5 py-2.5">
-                  <b className="font-display text-ink-800">fields</b> — مصفوفة المجالات (الاسم، الأيقونة، اللونان).
+                  <b className="font-display text-ink-800">fields</b> — مصفوفة المجالات (الاسم، الأيقونة، اللونان) مع{" "}
+                  <b>views</b> عداد مشاهدات صفحة كل مجال.
                 </li>
                 <li className="rounded-xl border border-dashed border-line bg-card px-3.5 py-2.5">
                   <b className="font-display text-ink-800">projects</b> — مصفوفة المشاريع: الغلاف، الصور، الأهداف، الإنجازات.
                 </li>
                 <li className="rounded-xl border border-dashed border-line bg-card px-3.5 py-2.5">
                   <b className="font-display text-ink-800">articles</b> — مصفوفة المقالات: keywords للعرض، و<b>tags</b> وسوم جاهزة
-                  يقرأها الموقع، و<b>publishedAt</b> تاريخ النشر، وصورة الغلاف وحالة النشر.
+                  يقرأها الموقع، و<b>publishedAt</b> تاريخ النشر، و<b>views</b> عداد مشاهدات صفحة المدونة، وصورة الغلاف وحالة النشر.
                 </li>
                 <li className="rounded-xl border border-dashed border-line bg-card px-3.5 py-2.5">
                   <b className="font-display text-ink-800">updatedAt</b> — طابع زمن يحدّثه النظام تلقائيًا لحل تعارضات المزامنة.
@@ -788,12 +793,23 @@ function Shell() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
+  const fieldDetailName =
+    view.name === "field-detail" && view.fieldId
+      ? db.fields.find((f) => f.id === view.fieldId)?.name
+      : undefined;
+
   const meta =
     view.name === "project-form" && view.projectId
       ? { t: "تعديل المشروع", en: "EDIT PROJECT", s: "حدّث بيانات المشروع واحفظ التغييرات" }
       : view.name === "article-form" && view.articleId
         ? { t: "تعديل المقال", en: "EDIT ARTICLE", s: "حدّث محتوى المقال وكلماته المفتاحية" }
-        : SECTIONS[view.name];
+        : view.name === "field-detail" && fieldDetailName
+          ? {
+              t: fieldDetailName,
+              en: "FIELD PAGE",
+              s: "صفحة المجال ومشاريعه وعداد مشاهداته",
+            }
+          : SECTIONS[view.name];
 
   const today = new Intl.DateTimeFormat("ar-EG-u-nu-latn", {
     weekday: "long",
@@ -832,7 +848,7 @@ function Shell() {
                 DUBLEX / {meta.en}
               </p>
               <h1 className="overflow-hidden font-display text-lg font-extrabold leading-7 text-ink-900 sm:text-xl">
-                <ScrambleText key={view.name + (view.projectId ?? "") + (view.articleId ?? "")} text={meta.t} />
+                <ScrambleText key={view.name + (view.projectId ?? "") + (view.articleId ?? "") + (view.fieldId ?? "")} text={meta.t} />
               </h1>
             </div>
             <div className="ms-auto flex items-center gap-2.5">
@@ -853,11 +869,14 @@ function Shell() {
         {/* المحتوى */}
         <main className="flex-1">
           <div
-            key={view.name + (view.projectId ?? "") + (view.articleId ?? "")}
+            key={view.name + (view.projectId ?? "") + (view.articleId ?? "") + (view.fieldId ?? "")}
             className="rise mx-auto w-full max-w-[1280px] px-4 py-7 sm:px-6 lg:px-8"
           >
             {view.name === "overview" && <Overview go={go} onCloud={() => setCloudOpen(true)} />}
-            {view.name === "fields" && <Fields />}
+            {view.name === "fields" && <Fields go={go} />}
+            {view.name === "field-detail" && view.fieldId && (
+              <FieldDetail id={view.fieldId} go={go} />
+            )}
             {view.name === "projects" && <Projects go={go} />}
             {view.name === "project-form" && <ProjectForm id={view.projectId} go={go} />}
             {view.name === "articles" && <Articles go={go} />}

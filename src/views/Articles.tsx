@@ -2,14 +2,20 @@ import { useMemo, useState } from "react";
 import { useStore } from "../store";
 import { I } from "../icons";
 import { Confirm, EmptyState, Modal, Overline, Reveal, Ticks } from "../components/ui";
-import { formatDate, type Article, type View } from "../types";
+import { formatDate, formatViews, type Article, type View } from "../types";
 
 export default function Articles({ go }: { go: (v: View) => void }) {
-  const { db, deleteArticle, toast } = useStore();
+  const { db, deleteArticle, incrementArticleView, toast } = useStore();
   const [q, setQ] = useState("");
   const [kwFilter, setKwFilter] = useState<string | null>(null);
   const [readId, setReadId] = useState<string | null>(null);
   const [delTarget, setDelTarget] = useState<Article | null>(null);
+
+  /* فتح المقال للقراءة يحتسب مشاهدة واحدة ويُزامنها مع Firestore */
+  const openArticle = (id: string) => {
+    incrementArticleView(id);
+    setReadId(id);
+  };
 
   const kwCloud = useMemo(() => {
     const m = new Map<string, number>();
@@ -108,7 +114,7 @@ export default function Articles({ go }: { go: (v: View) => void }) {
           {filtered.map((a, i) => (
             <Reveal key={a.id} delay={i * 70}>
               <article
-                onClick={() => setReadId(a.id)}
+                onClick={() => openArticle(a.id)}
                 className="group relative cursor-pointer rounded-xl border border-line bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_20px_44px_-20px_rgba(11,36,28,0.28)] sm:p-6"
               >
                 <Ticks className="text-ink-200 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -154,6 +160,10 @@ export default function Articles({ go }: { go: (v: View) => void }) {
                         </span>
                       ))}
                       <span className="ms-auto flex items-center gap-3 text-[11px] font-bold text-ink-400">
+                        <span className="flex items-center gap-1" title="مشاهدات صفحة المدونة">
+                          <I n="eye" className="h-3.5 w-3.5 text-brand" />
+                          {formatViews(a.views ?? 0)}
+                        </span>
                         <span className="flex items-center gap-1">
                           <I n="clock" className="h-3.5 w-3.5" />
                           {a.readMins} دقائق
@@ -221,6 +231,11 @@ export default function Articles({ go }: { go: (v: View) => void }) {
                   <span>أضيفت {formatDate(reading.createdAt)}</span>
                   <span className="h-1 w-1 rounded-full bg-ink-300" />
                   <span>{reading.readMins} دقائق قراءة</span>
+                  <span className="h-1 w-1 rounded-full bg-ink-300" />
+                  <span className="flex items-center gap-1.5 rounded-md bg-brand-soft px-2.5 py-1 text-brand-deep">
+                    <I n="eye" className="h-3.5 w-3.5" />
+                    {formatViews(reading.views ?? 0)} مشاهدة
+                  </span>
                   {reading.fieldLabel && (
                     <span className="rounded-md bg-sea-soft px-2 py-0.5 text-sea">{reading.fieldLabel}</span>
                   )}

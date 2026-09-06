@@ -2,7 +2,14 @@ import { useRef, useState, type FormEvent } from "react";
 import { useStore } from "../store";
 import { I, type IconName } from "../icons";
 import { Confirm, EmptyState, Overline, Reveal, Switch, Ticks } from "../components/ui";
-import { formatDate, isVideoField, looksLikeVideoName, type Field } from "../types";
+import {
+  formatDate,
+  formatViews,
+  isVideoField,
+  looksLikeVideoName,
+  type Field,
+  type View,
+} from "../types";
 
 const SWATCHES = [
   { color: "#0E6E55", soft: "#D9EAE2", name: "صنوبري" },
@@ -35,7 +42,7 @@ const emptyForm: FormState = {
   isVideo: false,
 };
 
-export default function Fields() {
+export default function Fields({ go }: { go: (v: View) => void }) {
   const { db, addField, updateField, deleteField, toast } = useStore();
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -294,8 +301,9 @@ export default function Fields() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {db.fields.map((f, i) => (
             <Reveal key={f.id} delay={(i % 3) * 90}>
-              <div
-                className="group relative h-full rounded-xl border border-line bg-card p-5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_44px_-20px_rgba(11,36,28,0.3)]"
+              <button
+                onClick={() => go({ name: "field-detail", fieldId: f.id })}
+                className="group relative block h-full w-full rounded-xl border border-line bg-card p-5 text-start transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_44px_-20px_rgba(11,36,28,0.3)]"
                 style={{ borderInlineStart: `4px solid ${f.color}` }}
               >
                 <Ticks className="text-ink-200 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -308,14 +316,20 @@ export default function Fields() {
                   </span>
                   <span className="ms-auto flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
                     <button
-                      onClick={() => startEdit(f)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        startEdit(f);
+                      }}
                       aria-label={`تعديل ${f.name}`}
                       className="btn-press rounded-lg p-2 text-ink-300 hover:bg-ink-50 hover:text-brand"
                     >
                       <I n="edit" className="h-4 w-4" />
                     </button>
                     <button
-                      onClick={() => setDelTarget(f)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDelTarget(f);
+                      }}
                       aria-label={`حذف ${f.name}`}
                       className="btn-press rounded-lg p-2 text-ink-300 hover:bg-coral-soft hover:text-coral"
                     >
@@ -323,7 +337,9 @@ export default function Fields() {
                     </button>
                   </span>
                 </div>
-                <h3 className="mt-4 font-display text-base font-extrabold text-ink-900">{f.name}</h3>
+                <h3 className="mt-4 font-display text-base font-extrabold text-ink-900 transition-colors group-hover:text-brand">
+                  {f.name}
+                </h3>
                 <p className="mt-1.5 min-h-[3.5rem] text-sm leading-6 text-ink-500">{f.desc || "بدون وصف"}</p>
                 <div className="mt-4 flex items-center justify-between gap-2 border-t border-dashed border-line pt-3.5">
                   <span className="flex items-center gap-1.5">
@@ -337,9 +353,12 @@ export default function Fields() {
                       </span>
                     )}
                   </span>
-                  <span className="font-mono text-[10px] font-semibold text-ink-300">{formatDate(f.createdAt)}</span>
+                  <span className="flex items-center gap-1 font-mono text-[11px] font-bold text-ink-400">
+                    <I n="eye" className="h-3.5 w-3.5 text-brand" />
+                    {formatViews(f.views ?? 0)}
+                  </span>
                 </div>
-              </div>
+              </button>
             </Reveal>
           ))}
         </div>

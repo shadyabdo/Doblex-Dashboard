@@ -1,6 +1,7 @@
 export type ViewName =
   | "overview"
   | "fields"
+  | "field-detail"
   | "projects"
   | "project-form"
   | "articles"
@@ -10,6 +11,7 @@ export interface View {
   name: ViewName;
   projectId?: string;
   articleId?: string;
+  fieldId?: string;
 }
 
 export interface Field {
@@ -21,6 +23,8 @@ export interface Field {
   soft: string;
   /** مجال يحتوي محتوى فيديو — تظهر فيه خانة رابط الفيديو بالمشاريع */
   isVideo?: boolean;
+  /** عدد مشاهدات صفحة المجال — يقرأه ويزوده الموقع الرئيسي من Firestore */
+  views?: number;
   createdAt: number;
 }
 
@@ -77,6 +81,8 @@ export interface Article {
   published: boolean;
   /** تاريخ النشر الفعلي (null للمقالات المسودة) — يقرأه الموقع الرئيسي */
   publishedAt: number | null;
+  /** عدد مشاهدات صفحة المدونة — يقرأه ويزوده الموقع الرئيسي من Firestore */
+  views?: number;
   readMins: number;
   createdAt: number;
 }
@@ -179,6 +185,18 @@ export function formatDate(ts: number): string {
     month: "short",
     year: "numeric",
   }).format(ts);
+}
+
+/** تنسيق أعداد المشاهدة: 999 ← 999، 1200 ← 1.2K، 1500000 ← 1.5M */
+export function formatViews(n: number): string {
+  const v = n ?? 0;
+  if (v < 1000) return String(v);
+  if (v < 1_000_000) {
+    const k = v / 1000;
+    return `${k >= 10 ? Math.round(k) : Math.round(k * 10) / 10}K`;
+  }
+  const m = v / 1_000_000;
+  return `${m >= 10 ? Math.round(m) : Math.round(m * 10) / 10}M`;
 }
 
 export function formatTime(ts: number): string {

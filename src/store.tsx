@@ -36,7 +36,7 @@ const readMins = (body: string) =>
 /** يكمل الحقول الجديدة (tags / publishedAt) للبيانات القديمة المحفوظة قبل التحديث */
 function normalizeDb(d: Db): Db {
   return {
-    fields: d.fields ?? [],
+    fields: (d.fields ?? []).map((f) => ({ ...f, views: f.views ?? 0 })),
     projects: d.projects ?? [],
     articles: (d.articles ?? []).map((a) => ({
       ...a,
@@ -47,6 +47,7 @@ function normalizeDb(d: Db): Db {
       publishedAt: a.published
         ? (a.publishedAt ?? a.createdAt ?? null)
         : (a.publishedAt ?? null),
+      views: a.views ?? 0,
     })),
   };
 }
@@ -79,6 +80,8 @@ interface StoreApi {
   ) => void;
   updateArticle: (id: string, patch: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
+  incrementFieldView: (id: string) => void;
+  incrementArticleView: (id: string) => void;
 }
 
 const Ctx = createContext<StoreApi | null>(null);
@@ -365,6 +368,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       })),
     deleteArticle: (id) =>
       setDb((d) => ({ ...d, articles: d.articles.filter((a) => a.id !== id) })),
+    incrementFieldView: (id) =>
+      setDb((d) => ({
+        ...d,
+        fields: d.fields.map((f) =>
+          f.id === id ? { ...f, views: (f.views ?? 0) + 1 } : f
+        ),
+      })),
+    incrementArticleView: (id) =>
+      setDb((d) => ({
+        ...d,
+        articles: d.articles.map((a) =>
+          a.id === id ? { ...a, views: (a.views ?? 0) + 1 } : a
+        ),
+      })),
   };
 
   return <Ctx.Provider value={api}>{children}</Ctx.Provider>;
