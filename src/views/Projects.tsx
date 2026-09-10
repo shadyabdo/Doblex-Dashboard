@@ -8,6 +8,7 @@ import {
   STATUS_STYLE,
   formatDate,
   type Project,
+  type ProjectLink,
   type ProjectStatus,
   type View,
 } from "../types";
@@ -197,6 +198,12 @@ export default function Projects({ go }: { go: (v: View) => void }) {
                       <span className="absolute bottom-3 end-3 flex items-center gap-1 rounded-md bg-coral px-2 py-1 text-[10px] font-bold text-card shadow-md transition-transform duration-300 group-hover:scale-110">
                         <I n="play" className="h-3 w-3" />
                         فيديو
+                      </span>
+                    )}
+                    {p.links && p.links.length > 0 && (
+                      <span className="absolute top-3 end-3 flex items-center gap-1 rounded-md bg-gold px-2 py-1 text-[10px] font-bold text-ink-950 shadow-md">
+                        <I n="link" className="h-3 w-3" />
+                        {p.links.length}
                       </span>
                     )}
                   </div>
@@ -411,6 +418,53 @@ export default function Projects({ go }: { go: (v: View) => void }) {
                   )}
                 </ul>
               </div>
+
+              {/* الروابط والملحقات */}
+              {selected.links && selected.links.length > 0 && (
+                <div className="mt-7">
+                  <h4 className="flex items-center gap-2 font-display text-sm font-extrabold text-ink-900">
+                    <I n="link" className="h-4 w-4 text-gold-deep" />
+                    الروابط والملحقات ({selected.links.length})
+                  </h4>
+                  <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+                    {selected.links.map((l) => {
+                      const iconMap: Record<ProjectLink["type"], IconName> = {
+                        demo: "demo",
+                        github: "github",
+                        figma: "figma",
+                        other: "link",
+                      };
+                      const colorMap: Record<ProjectLink["type"], { bg: string; fg: string }> = {
+                        demo: { bg: "bg-brand-soft", fg: "text-brand" },
+                        github: { bg: "bg-ink-50", fg: "text-ink-700" },
+                        figma: { bg: "bg-coral-soft", fg: "text-coral" },
+                        other: { bg: "bg-gold-soft", fg: "text-gold-deep" },
+                      };
+                      const c = colorMap[l.type];
+                      return (
+                        <a
+                          key={l.id}
+                          href={l.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn-press group flex items-center gap-3 rounded-xl border border-line bg-card px-4 py-3 text-start transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
+                        >
+                          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${c.bg} ${c.fg}`}>
+                            <I n={iconMap[l.type]} className="h-5 w-5" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-display text-[13px] font-bold text-ink-800 transition-colors group-hover:text-brand">
+                              {l.label}
+                            </p>
+                            <p dir="ltr" className="truncate text-[11px] text-ink-400">{l.url}</p>
+                          </div>
+                          <I n="arrow" className="h-4 w-4 shrink-0 text-ink-300 transition-all duration-300 group-hover:-translate-x-1 group-hover:text-brand" />
+                        </a>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* المعرض */}
               {selected.images.length > 0 && (

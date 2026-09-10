@@ -9,6 +9,7 @@ import {
   type Achievement,
   type Goal,
   type ProjectImage,
+  type ProjectLink,
   type ProjectStatus,
   type View,
 } from "../types";
@@ -71,6 +72,10 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
   const [goalText, setGoalText] = useState("");
   const [achMetric, setAchMetric] = useState("");
   const [achText, setAchText] = useState("");
+  const [links, setLinks] = useState<ProjectLink[]>(editing?.links ?? []);
+  const [linkType, setLinkType] = useState<ProjectLink["type"]>("demo");
+  const [linkLabel, setLinkLabel] = useState("");
+  const [linkUrl, setLinkUrl] = useState("");
   const [saving, setSaving] = useState(false);
 
   const [galleryUrl, setGalleryUrl] = useState("");
@@ -170,6 +175,7 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
       details: details.trim(),
       goals,
       achievements,
+      links,
     };
     window.setTimeout(() => {
       if (editing) {
@@ -519,6 +525,112 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
               </ul>
             )}
           </div>
+        </div>
+      </Step>
+
+      {/* الروابط والملحقات */}
+      <Step num={videoDomain ? "07" : "06"} title="الروابط والملحقات" desc="ديمو، كود، تصميم، وأي روابط متعلقة بالمشروع">
+        <div className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-[180px_1fr_1fr_auto]">
+            <select
+              className="inp"
+              value={linkType}
+              onChange={(e) => setLinkType(e.target.value as ProjectLink["type"])}
+              aria-label="نوع الرابط"
+            >
+              <option value="demo">🌐 ديمو / Demo</option>
+              <option value="github">💻 كود / GitHub</option>
+              <option value="figma">🎨 تصميم / Figma</option>
+              <option value="other">🔗 رابط آخر</option>
+            </select>
+            <input
+              className="inp"
+              placeholder="الاسم (مثال: الموقع الرسمي)"
+              value={linkLabel}
+              onChange={(e) => setLinkLabel(e.target.value)}
+            />
+            <input
+              dir="ltr"
+              className="inp !text-left"
+              placeholder="https://example.com"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                if (!linkUrl.trim()) {
+                  toast("الصق رابط الرابط أولًا", "error");
+                  return;
+                }
+                if (!validUrl(linkUrl)) {
+                  toast("الرابط غير صالح — يجب أن يبدأ بـ https://", "error");
+                  return;
+                }
+                setLinks([
+                  ...links,
+                  {
+                    id: gid(),
+                    type: linkType,
+                    label: linkLabel.trim() || linkType,
+                    url: linkUrl.trim(),
+                  },
+                ]);
+                setLinkLabel("");
+                setLinkUrl("");
+                toast("تمت إضافة الرابط");
+              }}
+              className="btn-press flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-card hover:bg-brand-deep"
+            >
+              <I n="plus" className="h-4 w-4" />
+              إضافة
+            </button>
+          </div>
+
+          {links.length > 0 ? (
+            <ul className="space-y-2">
+              {links.map((l) => {
+                const iconMap: Record<ProjectLink["type"], IconName> = {
+                  demo: "demo",
+                  github: "github",
+                  figma: "figma",
+                  other: "link",
+                };
+                const colorMap: Record<ProjectLink["type"], string> = {
+                  demo: "bg-brand-soft text-brand",
+                  github: "bg-ink-50 text-ink-700",
+                  figma: "bg-coral-soft text-coral",
+                  other: "bg-gold-soft text-gold-deep",
+                };
+                return (
+                  <li
+                    key={l.id}
+                    className="pop flex items-center gap-3 rounded-xl border border-line bg-card px-4 py-3 transition-all duration-200 hover:border-brand/40 hover:shadow-sm"
+                  >
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${colorMap[l.type]}`}>
+                      <I n={iconMap[l.type]} className="h-4.5 w-4.5" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-display text-[13px] font-bold text-ink-800">{l.label}</p>
+                      <p dir="ltr" className="truncate text-[11px] text-ink-400">{l.url}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setLinks(links.filter((x) => x.id !== l.id))}
+                      aria-label="حذف الرابط"
+                      className="btn-press rounded-lg p-2 text-ink-300 transition-colors hover:bg-coral-soft hover:text-coral"
+                    >
+                      <I n="trash" className="h-4 w-4" />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="rounded-xl border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-[12px] font-semibold text-ink-400">
+              لم تُضف روابط بعد — أضف رابط الديمو أو الكود أو التصميم
+            </p>
+          )}
         </div>
       </Step>
 

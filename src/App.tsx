@@ -105,6 +105,11 @@ const STRUCTURE_SAMPLE = `{
         { "id": "a1", "metric": "+38%", "text": "زيادة في معدل التحويل" }
       ],
       "videoUrl": "https://www.youtube.com/embed/…",  // اختياري — رابط embed يُعرض في iframe (للمجالات الفيديوية)
+      "links": [                              // اختياري — روابط الملحقات: ديمو، كود، تصميم، إلخ
+        { "id": "l1", "type": "demo", "label": "الموقع الرسمي", "url": "https://example.com" },
+        { "id": "l2", "type": "github", "label": "الكود المصدري", "url": "https://github.com/…" },
+        { "id": "l3", "type": "figma", "label": "ملف التصميم", "url": "https://figma.com/…" }
+      ],
       "createdAt": 1735689600000
     }
   ],
@@ -704,7 +709,7 @@ function CloudModal({
                   <b>views</b> عداد مشاهدات صفحة كل مجال.
                 </li>
                 <li className="rounded-xl border border-dashed border-line bg-card px-3.5 py-2.5">
-                  <b className="font-display text-ink-800">projects</b> — مصفوفة المشاريع: الغلاف، الصور، الأهداف، الإنجازات.
+                  <b className="font-display text-ink-800">projects</b> — مصفوفة المشاريع: الغلاف، الصور، الأهداف، الإنجازات، و<b>links</b> روابط الملحقات (ديمو، كود، تصميم).
                 </li>
                 <li className="rounded-xl border border-dashed border-line bg-card px-3.5 py-2.5">
                   <b className="font-display text-ink-800">articles</b> — مصفوفة المقالات: keywords للعرض، و<b>tags</b> وسوم جاهزة
