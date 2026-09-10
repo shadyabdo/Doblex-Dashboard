@@ -47,6 +47,13 @@ export interface Achievement {
 
 export type ProjectStatus = "planning" | "active" | "done";
 
+export interface ProjectLink {
+  id: string;
+  type: "demo" | "github" | "figma" | "other";
+  label: string;
+  url: string;
+}
+
 export interface Project {
   id: string;
   fieldId: string;
@@ -64,6 +71,8 @@ export interface Project {
   achievements: Achievement[];
   /** رابط فيديو مضمّن (iframe embed) — يظهر كمشغّل في تفاصيل المشروع */
   videoUrl?: string;
+  /** روابط الملحقات: ديمو، كود، تصميم، إلخ */
+  links?: ProjectLink[];
   createdAt: number;
 }
 
