@@ -70,28 +70,28 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
   };
 
   return (
-    <form onSubmit={save} className="space-y-5">
+    <form onSubmit={save} className="space-y-4 sm:space-y-5">
       <div className="rise">
         <Overline>{editing ? "04 / تعديل مقال" : "04 / مقال جديد"}</Overline>
-        <h2 className="mt-2 overflow-hidden font-display text-2xl font-extrabold text-ink-900 sm:text-[32px] sm:leading-tight">
+        <h2 className="mt-2 overflow-hidden font-display text-xl sm:text-2xl lg:text-[32px] font-extrabold text-ink-900 sm:leading-tight">
           <span className="line-mask">{editing ? "تعديل المقال" : "شارك معرفة الفريق مع العالم"}</span>
         </h2>
-        <p className="mt-2 text-sm text-ink-500">
+        <p className="mt-2 text-xs sm:text-sm text-ink-500">
           عنوان قوي، كلمات مفتاحية دقيقة، ومحتوى يفيد القارئ — هذا كل ما تحتاجه.
         </p>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-3">
+      <div className="grid gap-4 sm:gap-5 xl:grid-cols-3">
         {/* المحتوى */}
-        <div className="space-y-5 xl:col-span-2">
-          <section className="relative rounded-xl border border-line bg-card p-5 shadow-sm sm:p-7">
+        <div className="space-y-4 sm:space-y-5 xl:col-span-2">
+          <section className="relative rounded-xl border border-line bg-card p-4 sm:p-5 lg:p-7 shadow-sm">
             <Ticks className="text-ink-200" />
-            <div className="space-y-5">
+            <div className="space-y-4 sm:space-y-5">
               <div>
                 <label className="lbl" htmlFor="a-title">عنوان المقال *</label>
                 <input
                   id="a-title"
-                  className="inp font-display !text-base !font-extrabold"
+                  className="inp font-display !text-sm sm:!text-base !font-extrabold"
                   placeholder="مثال: معدل التحويل — كيف تضاعفه في 30 يومًا؟"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -115,10 +115,10 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
         </div>
 
         {/* الجانب */}
-        <div className="space-y-5">
-          <section className="relative rounded-xl border border-line bg-card p-5 shadow-sm">
+        <div className="space-y-4 sm:space-y-5">
+          <section className="relative rounded-xl border border-line bg-card p-4 sm:p-5 shadow-sm">
             <Ticks className="text-ink-200" />
-            <div className="space-y-5">
+            <div className="space-y-4 sm:space-y-5">
               <div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="lbl !mb-0">صورة المقال</span>
@@ -251,29 +251,30 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
       </div>
 
       {/* شريط الحفظ */}
-      <div className="rise sticky bottom-4 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-ink-700 bg-ink-950/95 p-4 shadow-2xl backdrop-blur-sm">
+      <div className="rise sticky bottom-3 sm:bottom-4 z-10 flex flex-wrap items-center gap-2 sm:gap-3 rounded-xl border border-ink-700 bg-ink-950/95 p-3 sm:p-4 shadow-2xl backdrop-blur-sm">
         <p className="hidden font-mono text-[10px] font-semibold tracking-[0.2em] text-ink-400 sm:block">
           EDITOR / المحرر
         </p>
-        <div className="ms-auto flex flex-1 flex-wrap justify-end gap-3 sm:flex-none">
+        <div className="ms-auto flex flex-1 flex-wrap justify-end gap-2 sm:gap-3 sm:flex-none">
           <button
             type="button"
             onClick={() => go({ name: "articles" })}
-            className="btn-press rounded-xl border border-ink-600 px-6 py-3 text-sm font-semibold text-ink-200 hover:border-ink-400 hover:text-card"
+            className="btn-press rounded-lg sm:rounded-xl border border-ink-600 px-4 sm:px-6 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-ink-200 hover:border-ink-400 hover:text-card"
           >
             إلغاء
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="btn-press flex min-w-[180px] items-center justify-center gap-2 rounded-xl bg-gold px-7 py-3 font-display text-sm font-extrabold text-ink-950 hover:brightness-110 disabled:opacity-60"
+            className="btn-press flex min-w-[160px] sm:min-w-[180px] items-center justify-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl bg-gold px-5 sm:px-7 py-2.5 sm:py-3 font-display text-xs sm:text-sm font-extrabold text-ink-950 hover:brightness-110 disabled:opacity-60"
           >
             {saving ? (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink-950/30 border-t-ink-950" />
+              <span className="h-3.5 sm:h-4 w-3.5 sm:w-4 animate-spin rounded-full border-2 border-ink-950/30 border-t-ink-950" />
             ) : (
-              <I n="check" className="h-5 w-5" />
+              <I n="check" className="h-4 sm:h-5 w-4 sm:w-5" />
             )}
-            {editing ? "حفظ التعديلات" : published ? "نشر المقال" : "حفظ كمسودة"}
+            <span className="hidden sm:inline">{editing ? "حفظ التعديلات" : published ? "نشر المقال" : "حفظ كمسودة"}</span>
+            <span className="sm:hidden">{editing ? "حفظ" : published ? "نشر" : "مسودة"}</span>
           </button>
         </div>
       </div>

@@ -103,27 +103,28 @@ export default function Fields({ go }: { go: (v: View) => void }) {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="rise flex flex-wrap items-end justify-between gap-4">
-        <div className="max-w-xl">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="rise flex flex-wrap items-end justify-between gap-3 sm:gap-4">
+        <div className="max-w-xl flex-1">
           <Overline>02 / إدارة المجالات</Overline>
-          <p className="mt-2 text-sm leading-7 text-ink-500">
+          <p className="mt-2 text-xs sm:text-sm leading-6 sm:leading-7 text-ink-500">
             المجالات هي خطوط عمل الفريق. أضف مجالًا جديدًا، واختر له أيقونة ولونًا يميّزه في
             كل أنحاء الداشبورد.
           </p>
         </div>
         <button
           onClick={() => (formOpen ? setFormOpen(false) : openNew())}
-          className="btn-press flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 font-display text-sm font-bold text-card hover:bg-brand-deep"
+          className="btn-press flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl bg-brand px-3 sm:px-5 py-2 sm:py-2.5 font-display text-xs sm:text-sm font-bold text-card hover:bg-brand-deep"
         >
-          <I n={formOpen ? "x" : "plus"} className="h-4 w-4" />
-          {formOpen ? "إغلاق النموذج" : "إضافة مجال"}
+          <I n={formOpen ? "x" : "plus"} className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+          <span className="hidden sm:inline">{formOpen ? "إغلاق النموذج" : "إضافة مجال"}</span>
+          <span className="sm:hidden">{formOpen ? "إغلاق" : "إضافة"}</span>
         </button>
       </div>
 
       {formOpen && (
         <Reveal>
-          <form onSubmit={submit} className="relative rounded-xl border border-line bg-card p-5 shadow-sm sm:p-7">
+          <form onSubmit={submit} className="relative rounded-xl border border-line bg-card p-4 sm:p-5 lg:p-7 shadow-sm">
             <Ticks className="text-ink-200" />
             <div className="grid gap-7 lg:grid-cols-[1fr_280px]">
               <div className="space-y-5">
@@ -298,12 +299,12 @@ export default function Fields({ go }: { go: (v: View) => void }) {
           </button>
         </EmptyState>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           {db.fields.map((f, i) => (
             <Reveal key={f.id} delay={(i % 3) * 90}>
               <button
                 onClick={() => go({ name: "field-detail", fieldId: f.id })}
-                className="group relative block h-full w-full rounded-xl border border-line bg-card p-5 text-start transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_44px_-20px_rgba(11,36,28,0.3)]"
+                className="group relative block h-full w-full rounded-xl border border-line bg-card p-4 sm:p-5 text-start transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_20px_44px_-20px_rgba(11,36,28,0.3)]"
                 style={{ borderInlineStart: `4px solid ${f.color}` }}
               >
                 <Ticks className="text-ink-200 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -337,24 +338,24 @@ export default function Fields({ go }: { go: (v: View) => void }) {
                     </button>
                   </span>
                 </div>
-                <h3 className="mt-4 font-display text-base font-extrabold text-ink-900 transition-colors group-hover:text-brand">
+                <h3 className="mt-3 sm:mt-4 font-display text-sm sm:text-base font-extrabold text-ink-900 transition-colors group-hover:text-brand">
                   {f.name}
                 </h3>
-                <p className="mt-1.5 min-h-[3.5rem] text-sm leading-6 text-ink-500">{f.desc || "بدون وصف"}</p>
-                <div className="mt-4 flex items-center justify-between gap-2 border-t border-dashed border-line pt-3.5">
-                  <span className="flex items-center gap-1.5">
-                    <span className="rounded-full px-3 py-1 font-mono text-[11px] font-bold" style={{ background: f.soft, color: f.color }}>
+                <p className="mt-1 sm:mt-1.5 min-h-[3rem] sm:min-h-[3.5rem] text-xs sm:text-sm leading-5 sm:leading-6 text-ink-500">{f.desc || "بدون وصف"}</p>
+                <div className="mt-3 sm:mt-4 flex items-center justify-between gap-2 border-t border-dashed border-line pt-2.5 sm:pt-3.5">
+                  <span className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                    <span className="rounded-full px-2 sm:px-3 py-0.5 sm:py-1 font-mono text-[10px] sm:text-[11px] font-bold" style={{ background: f.soft, color: f.color }}>
                       {projectCount(f.id)} مشاريع
                     </span>
                     {isVideoField(f) && (
-                      <span className="flex items-center gap-1 rounded-full bg-coral-soft px-2.5 py-1 text-[10px] font-bold text-coral">
-                        <I n="play" className="h-3 w-3" />
+                      <span className="flex items-center gap-0.5 sm:gap-1 rounded-full bg-coral-soft px-2 sm:px-2.5 py-0.5 sm:py-1 text-[9px] sm:text-[10px] font-bold text-coral">
+                        <I n="play" className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         فيديو
                       </span>
                     )}
                   </span>
-                  <span className="flex items-center gap-1 font-mono text-[11px] font-bold text-ink-400">
-                    <I n="eye" className="h-3.5 w-3.5 text-brand" />
+                  <span className="flex items-center gap-0.5 sm:gap-1 font-mono text-[10px] sm:text-[11px] font-bold text-ink-400">
+                    <I n="eye" className="h-3 sm:h-3.5 w-3 sm:w-3.5 text-brand" />
                     {formatViews(f.views ?? 0)}
                   </span>
                 </div>

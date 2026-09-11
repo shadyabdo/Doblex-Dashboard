@@ -24,7 +24,7 @@ function Tile({
 }) {
   return (
     <Reveal delay={delay} className={className}>
-      <div className="relative h-full rounded-xl border border-line bg-card p-5 shadow-[0_1px_0_rgba(11,36,28,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-18px_rgba(11,36,28,0.25)] sm:p-6">
+      <div className="relative h-full rounded-xl border border-line bg-card p-4 shadow-[0_1px_0_rgba(11,36,28,0.04)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-18px_rgba(11,36,28,0.25)] sm:p-5 lg:p-6">
         <Ticks className="text-ink-200" />
         {children}
       </div>
@@ -218,40 +218,40 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
   return (
     <div className="space-y-5">
       {/* صف المؤشرات */}
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {stats.map((s, i) => (
           <Reveal key={s.en} delay={i * 70}>
-            <div className="relative overflow-hidden rounded-xl border border-line bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-18px_rgba(11,36,28,0.25)]">
+            <div className="relative overflow-hidden rounded-xl border border-line bg-card p-4 sm:p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-18px_rgba(11,36,28,0.25)]">
               <Ticks className="text-ink-200" />
               <span
-                className="pointer-events-none absolute -bottom-3 -start-2 font-mono text-[64px] font-bold leading-none text-ink-50"
+                className="pointer-events-none absolute -bottom-3 -start-2 font-mono text-[48px] sm:text-[64px] font-bold leading-none text-ink-50"
                 aria-hidden="true"
               >
                 0{i + 1}
               </span>
               <div className="relative flex items-start justify-between">
-                <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${s.iconBg}`}>
-                  <I n={s.icon} className="h-5 w-5" />
+                <span className={`flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl ${s.iconBg}`}>
+                  <I n={s.icon} className="h-4 w-4 sm:h-5 sm:w-5" />
                 </span>
                 <span className="font-mono text-[9px] font-semibold tracking-[0.25em] text-ink-300">{s.en}</span>
               </div>
-              <p className={`relative mt-4 font-mono text-4xl font-bold tracking-tight ${s.tint}`}>
+              <p className={`relative mt-3 sm:mt-4 font-mono text-2xl sm:text-4xl font-bold tracking-tight ${s.tint}`}>
                 <CountUp value={s.value} />
               </p>
-              <p className="relative mt-1 font-display text-[13px] font-bold text-ink-600">{s.label}</p>
+              <p className="relative mt-1 font-display text-[12px] sm:text-[13px] font-bold text-ink-600">{s.label}</p>
             </div>
           </Reveal>
         ))}
       </div>
 
       {/* الشبكة الرئيسية */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-12 gap-3 sm:gap-4">
         {/* نبض الفريق */}
         <Tile className="col-span-12 xl:col-span-7" delay={60}>
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <div>
+          <div className="flex flex-wrap items-end justify-between gap-2 sm:gap-3">
+            <div className="min-w-0 flex-1">
               <Overline>01 / نبض الفريق</Overline>
-              <h3 className="mt-2 font-display text-xl font-extrabold text-ink-900">
+              <h3 className="mt-2 font-display text-lg sm:text-xl font-extrabold text-ink-900">
                 الإنتاج خلال 6 أشهر
               </h3>
             </div>
@@ -310,8 +310,8 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
         {/* توزيع المجالات */}
         <Tile className="col-span-12 xl:col-span-5" delay={120}>
           <Overline>02 / توزيع المجالات</Overline>
-          <h3 className="mt-2 font-display text-xl font-extrabold text-ink-900">أين يشتغل الفريق؟</h3>
-          <div className="mt-5 space-y-4">
+          <h3 className="mt-2 font-display text-lg sm:text-xl font-extrabold text-ink-900">أين يشتغل الفريق؟</h3>
+          <div className="mt-4 sm:mt-5 space-y-3 sm:space-y-4">
             {fieldDist.length === 0 && (
               <p className="text-sm text-ink-400">لا توجد مجالات بعد — أضفها من قسم المجالات.</p>
             )}
@@ -345,15 +345,15 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
         {/* الأهداف */}
         <Tile className="col-span-12 sm:col-span-6 xl:col-span-4" delay={80}>
           <Overline>03 / الأهداف</Overline>
-          <h3 className="mt-2 font-display text-xl font-extrabold text-ink-900">تقدّم الأهداف</h3>
-          <div className="mt-5 flex items-center gap-5">
-            <ProgressRing pct={goalsPct} sub="محقّق" />
-            <div className="space-y-2.5">
-              <p className="font-mono text-2xl font-bold text-ink-900">
+          <h3 className="mt-2 font-display text-lg sm:text-xl font-extrabold text-ink-900">تقدّم الأهداف</h3>
+          <div className="mt-4 sm:mt-5 flex items-center gap-4 sm:gap-5">
+            <ProgressRing pct={goalsPct} sub="محقّق" size={100} />
+            <div className="space-y-2">
+              <p className="font-mono text-xl sm:text-2xl font-bold text-ink-900">
                 {doneGoals}
-                <span className="text-base text-ink-300">/{totalGoals}</span>
+                <span className="text-sm sm:text-base text-ink-300">/{totalGoals}</span>
               </p>
-              <p className="text-[12px] leading-6 text-ink-400">
+              <p className="text-[11px] sm:text-[12px] leading-5 sm:leading-6 text-ink-400">
                 هدفًا محققًا من إجمالي أهداف
                 <br />
                 كل مشاريع الفريق
@@ -365,8 +365,8 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
         {/* الإنجازات */}
         <Tile className="col-span-12 sm:col-span-6 xl:col-span-4" delay={140}>
           <Overline>04 / الإنجازات</Overline>
-          <h3 className="mt-2 font-display text-xl font-extrabold text-ink-900">نتائج نفخر بها</h3>
-          <p className="mt-3 font-mono text-4xl font-bold tracking-tight text-gold-deep">
+          <h3 className="mt-2 font-display text-lg sm:text-xl font-extrabold text-ink-900">نتائج نفخر بها</h3>
+          <p className="mt-3 font-mono text-3xl sm:text-4xl font-bold tracking-tight text-gold-deep">
             <CountUp value={totalAch} />
           </p>
           <p className="text-[11px] font-bold text-ink-400">إنجازًا موثّقًا بالأرقام</p>
@@ -386,11 +386,11 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
         {/* المزامنة */}
         <Tile className="col-span-12 xl:col-span-4" delay={200}>
           <Overline>05 / السحابة</Overline>
-          <h3 className="mt-2 font-display text-xl font-extrabold text-ink-900">مزامنة البيانات</h3>
-          <div className="mt-5 rounded-xl border border-dashed border-ink-200 bg-ink-50/50 p-4">
-            <div className="flex items-center gap-2.5">
+          <h3 className="mt-2 font-display text-lg sm:text-xl font-extrabold text-ink-900">مزامنة البيانات</h3>
+          <div className="mt-4 sm:mt-5 rounded-xl border border-dashed border-ink-200 bg-ink-50/50 p-3 sm:p-4">
+            <div className="flex items-center gap-2">
               <span
-                className={`h-3 w-3 rounded-full ${
+                className={`h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full ${
                   sync.mode === "cloud"
                     ? "bg-brand pulse-dot text-brand"
                     : sync.mode === "connecting"
@@ -400,7 +400,7 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
                         : "bg-gold"
                 }`}
               />
-              <span className="font-display text-sm font-extrabold text-ink-800">
+              <span className="font-display text-xs sm:text-sm font-extrabold text-ink-800">
                 {sync.mode === "cloud"
                   ? "متصل بفايربيز"
                   : sync.mode === "connecting"
@@ -410,7 +410,7 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
                       : "تخزين محلي"}
               </span>
             </div>
-            <p className="mt-2 text-[12px] leading-6 text-ink-400">
+            <p className="mt-2 text-[11px] sm:text-[12px] leading-5 sm:leading-6 text-ink-400">
               {sync.mode === "cloud"
                 ? `بيانات الفريق محفوظة في Firestore${sync.projectId ? ` — مشروع ${sync.projectId}` : ""}.`
                 : sync.mode === "error"
@@ -418,14 +418,14 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
                   : "البيانات محفوظة في متصفحك. اربط فايربيز لمشاركتها مع فريقك لحظيًا."}
             </p>
             {sync.lastSync && sync.mode === "cloud" && (
-              <p className="mt-1 font-mono text-[11px] font-semibold text-brand">
+              <p className="mt-1 font-mono text-[10px] sm:text-[11px] font-semibold text-brand">
                 آخر مزامنة {formatDate(sync.lastSync)}
               </p>
             )}
           </div>
           <button
             onClick={onCloud}
-            className="btn-press mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-ink-900 px-4 py-2.5 font-display text-[13px] font-bold text-card transition-colors hover:bg-ink-700"
+            className="btn-press mt-3 sm:mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-ink-900 px-4 py-2.5 font-display text-[12px] sm:text-[13px] font-bold text-card transition-colors hover:bg-ink-700"
           >
             <I n="cloud" className="h-4 w-4" />
             إعدادات فايربيز
@@ -434,20 +434,20 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
 
         {/* أحدث المشاريع */}
         <Tile className="col-span-12 xl:col-span-7" delay={100}>
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0 flex-1">
               <Overline>06 / أحدث المشاريع</Overline>
-              <h3 className="mt-2 font-display text-xl font-extrabold text-ink-900">آخر ما اشتغلنا عليه</h3>
+              <h3 className="mt-2 font-display text-lg sm:text-xl font-extrabold text-ink-900">آخر ما اشتغلنا عليه</h3>
             </div>
             <button
               onClick={() => go({ name: "projects" })}
-              className="btn-press flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-[12px] font-bold text-ink-600 transition-colors hover:border-brand hover:text-brand"
+              className="btn-press flex shrink-0 items-center gap-1.5 rounded-lg border border-ink-200 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-[12px] font-bold text-ink-600 transition-colors hover:border-brand hover:text-brand"
             >
               عرض الكل
-              <I n="arrow" className="h-3.5 w-3.5" />
+              <I n="arrow" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="mt-4 grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3">
             {recentProjects.length === 0 && (
               <p className="col-span-full rounded-xl border border-dashed border-line bg-ink-50/50 px-4 py-6 text-center text-[13px] font-semibold text-ink-400">
                 لا مشاريع بعد — أضف أول مشروع وسيظهر هنا فورًا.
@@ -496,17 +496,17 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
 
         {/* أحدث المقالات */}
         <Tile className="col-span-12 xl:col-span-5" delay={160}>
-          <div className="flex items-center justify-between">
-            <div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0 flex-1">
               <Overline>07 / من المدونة</Overline>
-              <h3 className="mt-2 font-display text-xl font-extrabold text-ink-900">أحدث المقالات</h3>
+              <h3 className="mt-2 font-display text-lg sm:text-xl font-extrabold text-ink-900">أحدث المقالات</h3>
             </div>
             <button
               onClick={() => go({ name: "articles" })}
-              className="btn-press flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-[12px] font-bold text-ink-600 transition-colors hover:border-brand hover:text-brand"
+              className="btn-press flex shrink-0 items-center gap-1.5 rounded-lg border border-ink-200 px-2.5 sm:px-3 py-1.5 text-[11px] sm:text-[12px] font-bold text-ink-600 transition-colors hover:border-brand hover:text-brand"
             >
               الكل
-              <I n="arrow" className="h-3.5 w-3.5" />
+              <I n="arrow" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
             </button>
           </div>
           <ul className="mt-4 divide-y divide-dashed divide-line">
@@ -548,21 +548,21 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
 
       {/* شريط الحالة */}
       <Reveal delay={120}>
-        <div className="relative overflow-hidden rounded-xl bg-ink-950 px-6 py-7 sm:px-8">
+        <div className="relative overflow-hidden rounded-xl bg-ink-950 px-4 sm:px-6 py-5 sm:py-7 lg:px-8">
           <img
             src={LOGO_URL}
             alt=""
-            className="pointer-events-none absolute -top-6 start-6 h-32 w-32 opacity-10 grayscale"
+            className="pointer-events-none absolute -top-6 start-6 h-24 w-24 sm:h-32 sm:w-32 opacity-10 grayscale"
           />
-          <div className="relative flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="font-mono text-[10px] font-semibold tracking-[0.3em] text-gold">STATUS / الحالة</p>
-              <h3 className="mt-2 font-display text-xl font-extrabold text-card sm:text-2xl">
+          <div className="relative flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="min-w-0">
+              <p className="font-mono text-[9px] sm:text-[10px] font-semibold tracking-[0.3em] text-gold">STATUS / الحالة</p>
+              <h3 className="mt-2 font-display text-base sm:text-xl lg:text-2xl font-extrabold text-card">
                 {db.projects.filter((p) => p.status === "active").length} مشاريع جارية الآن
-                <span className="ms-3 inline-flex items-center gap-2 align-middle text-[12px] font-bold text-ink-300">
+                <span className="ms-2 sm:ms-3 inline-flex flex-wrap items-center gap-1.5 sm:gap-2 align-middle text-[10px] sm:text-[12px] font-bold text-ink-300">
                   {(["planning", "active", "done"] as const).map((s) => (
-                    <span key={s} className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full" style={{ background: STATUS_STYLE[s].dot }} />
+                    <span key={s} className="flex items-center gap-1 sm:gap-1.5">
+                      <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full" style={{ background: STATUS_STYLE[s].dot }} />
                       {db.projects.filter((p) => p.status === s).length}
                     </span>
                   ))}
@@ -571,9 +571,9 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
             </div>
             <button
               onClick={() => go({ name: "project-form" })}
-              className="btn-press flex items-center gap-2 rounded-xl bg-gold px-6 py-3 font-display text-sm font-extrabold text-ink-950 shadow-lg shadow-gold/20 hover:brightness-110"
+              className="btn-press flex items-center gap-2 rounded-xl bg-gold px-4 sm:px-6 py-2.5 sm:py-3 font-display text-xs sm:text-sm font-extrabold text-ink-950 shadow-lg shadow-gold/20 hover:brightness-110"
             >
-              <I n="plus" className="h-4 w-4" />
+              <I n="plus" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               مشروع جديد
             </button>
           </div>
