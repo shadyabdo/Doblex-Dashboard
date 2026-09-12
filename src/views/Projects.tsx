@@ -68,19 +68,19 @@ export default function Projects({ go }: { go: (v: View) => void }) {
   return (
     <div className="space-y-6">
       {/* شريط الأدوات */}
-      <div className="rise space-y-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative min-w-[220px] flex-1 sm:max-w-xs">
-            <I n="search" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
+      <div className="rise space-y-3 sm:space-y-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="relative min-w-[180px] sm:min-w-[220px] flex-1 sm:max-w-xs">
+            <I n="search" className="absolute start-3 sm:start-3.5 top-1/2 h-3.5 sm:h-4 w-3.5 sm:w-4 -translate-y-1/2 text-ink-300" />
             <input
-              className="inp !ps-10"
+              className="inp !ps-9 sm:!ps-10 !text-sm"
               placeholder="ابحث في المشاريع…"
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
           </div>
           <select
-            className="inp !w-auto cursor-pointer"
+            className="inp !w-auto cursor-pointer !text-xs sm:!text-sm"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value as "all" | ProjectStatus)}
             aria-label="فلترة حسب الحالة"
@@ -93,33 +93,35 @@ export default function Projects({ go }: { go: (v: View) => void }) {
           <button
             onClick={() => setVideoOnly(!videoOnly)}
             aria-pressed={videoOnly}
-            className={`btn-press flex items-center gap-1.5 rounded-xl border px-4 py-2.5 text-[12px] font-bold transition-all ${
+            className={`btn-press flex items-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl border px-2.5 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-[12px] font-bold transition-all ${
               videoOnly
                 ? "border-coral bg-coral text-card shadow-md"
                 : "border-ink-200 bg-card text-ink-500 hover:border-coral/60 hover:text-coral"
             }`}
           >
-            <I n="play" className="h-3.5 w-3.5" />
-            فيه فيديو
-            {videoOnly && <I n="check" className="h-3.5 w-3.5" />}
+            <I n="play" className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
+            <span className="hidden sm:inline">فيه فيديو</span>
+            <span className="sm:hidden">فيديو</span>
+            {videoOnly && <I n="check" className="h-3 sm:h-3.5 w-3 sm:w-3.5" />}
           </button>
-          <span className="font-mono text-[12px] font-bold text-ink-400">
+          <span className="hidden sm:block font-mono text-[12px] font-bold text-ink-400">
             {filtered.length} / {db.projects.length}
           </span>
           <button
             onClick={() => go({ name: "project-form" })}
-            className="btn-press ms-auto flex items-center gap-2 rounded-xl bg-gold px-5 py-2.5 font-display text-sm font-extrabold text-ink-950 hover:brightness-105"
+            className="btn-press ms-auto flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl bg-gold px-3 sm:px-5 py-2 sm:py-2.5 font-display text-xs sm:text-sm font-extrabold text-ink-950 hover:brightness-105"
           >
-            <I n="plus" className="h-4 w-4" />
-            مشروع جديد
+            <I n="plus" className="h-3.5 sm:h-4 w-3.5 sm:w-4" />
+            <span className="hidden sm:inline">مشروع جديد</span>
+            <span className="sm:hidden">جديد</span>
           </button>
         </div>
 
         {/* فلترة المجالات */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           <button
             onClick={() => setFieldFilter("all")}
-            className={`btn-press rounded-full border px-4 py-1.5 text-[12px] font-bold transition-colors ${
+            className={`btn-press rounded-full border px-3 sm:px-4 py-1 sm:py-1.5 text-[11px] sm:text-[12px] font-bold transition-colors ${
               fieldFilter === "all"
                 ? "border-ink-900 bg-ink-900 text-card"
                 : "border-ink-200 bg-card text-ink-500 hover:border-ink-400"
@@ -131,7 +133,7 @@ export default function Projects({ go }: { go: (v: View) => void }) {
             <button
               key={f.id}
               onClick={() => setFieldFilter(fieldFilter === f.id ? "all" : f.id)}
-              className={`btn-press flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-[12px] font-bold transition-all ${
+              className={`btn-press flex items-center gap-1 sm:gap-1.5 rounded-full border px-2.5 sm:px-4 py-1 sm:py-1.5 text-[11px] sm:text-[12px] font-bold transition-all ${
                 fieldFilter === f.id ? "shadow-sm" : "hover:-translate-y-0.5"
               }`}
               style={
@@ -140,8 +142,9 @@ export default function Projects({ go }: { go: (v: View) => void }) {
                   : { background: f.soft, borderColor: "transparent", color: f.color }
               }
             >
-              <I n={f.icon as IconName} className="h-3.5 w-3.5" />
-              {f.name}
+              <I n={f.icon as IconName} className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
+              <span className="hidden sm:inline">{f.name}</span>
+              <span className="sm:hidden">{f.name.length > 12 ? f.name.slice(0, 10) + "…" : f.name}</span>
             </button>
           ))}
         </div>
@@ -169,7 +172,7 @@ export default function Projects({ go }: { go: (v: View) => void }) {
           )}
         </EmptyState>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((p, i) => {
             const f = fieldOf(p);
             const done = p.goals.filter((g) => g.done).length;
@@ -207,17 +210,17 @@ export default function Projects({ go }: { go: (v: View) => void }) {
                       </span>
                     )}
                   </div>
-                  <div className="p-5">
+                  <div className="p-4 sm:p-5">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <h3 className="truncate font-display text-lg font-extrabold text-ink-900 transition-colors group-hover:text-brand">
+                        <h3 className="truncate font-display text-base sm:text-lg font-extrabold text-ink-900 transition-colors group-hover:text-brand">
                           {p.title}
                         </h3>
-                        <p className="mt-0.5 truncate text-[12px] text-ink-400">
+                        <p className="mt-0.5 truncate text-[11px] sm:text-[12px] text-ink-400">
                           {p.subtitle || p.client}
                         </p>
                       </div>
-                      <span className="shrink-0 rounded-lg bg-ink-50 px-2 py-1 font-mono text-[11px] font-bold text-ink-500">
+                      <span className="shrink-0 rounded-lg bg-ink-50 px-2 py-1 font-mono text-[10px] sm:text-[11px] font-bold text-ink-500">
                         {p.year}
                       </span>
                     </div>

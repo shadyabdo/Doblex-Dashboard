@@ -74,7 +74,7 @@ export default function FieldDetail({ id, go }: { id: string; go: (v: View) => v
       {/* ترويسة الصفحة — عداد المشاهدات هو البطل */}
       <Reveal>
         <div
-          className="relative overflow-hidden rounded-2xl bg-ink-950 px-6 py-9 sm:px-10"
+          className="relative overflow-hidden rounded-2xl bg-ink-950 px-4 py-6 sm:px-6 sm:py-8 lg:px-10 lg:py-9"
           style={{
             backgroundImage: `radial-gradient(680px 320px at 12% -40%, ${field.color}55, transparent 65%), radial-gradient(520px 300px at 95% 130%, #E19B1026, transparent 60%)`,
           }}
@@ -82,7 +82,7 @@ export default function FieldDetail({ id, go }: { id: string; go: (v: View) => v
           <img
             src="https://www.image2url.com/r2/default/images/1788264047480-46d203e2-c238-469a-9424-3af4429ac94c.png"
             alt=""
-            className="pointer-events-none absolute -bottom-14 -start-8 h-52 w-52 opacity-[0.07] grayscale"
+            className="pointer-events-none absolute -bottom-14 -start-8 h-32 w-32 sm:h-40 sm:w-40 lg:h-52 lg:w-52 opacity-[0.07] grayscale"
           />
           <div
             className="pointer-events-none absolute inset-0 opacity-[0.14]"
@@ -92,54 +92,54 @@ export default function FieldDetail({ id, go }: { id: string; go: (v: View) => v
               backgroundSize: "32px 32px",
             }}
           />
-          <div className="relative flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative flex flex-col gap-5 sm:gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-7">
             <div className="max-w-xl">
-              <p className="flex items-center gap-2 font-mono text-[11px] font-semibold tracking-[0.22em]" style={{ color: field.color }}>
-                <span className="inline-block h-2 w-2" style={{ background: field.color }} />
+              <p className="flex items-center gap-2 font-mono text-[10px] sm:text-[11px] font-semibold tracking-[0.22em]" style={{ color: field.color }}>
+                <span className="inline-block h-1.5 w-1.5 sm:h-2 sm:w-2" style={{ background: field.color }} />
                 FIELD PAGE / صفحة المجال
               </p>
-              <div className="mt-3 flex items-center gap-3.5">
+              <div className="mt-2 sm:mt-3 flex flex-wrap items-center gap-2.5 sm:gap-3.5">
                 <span
-                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
+                  className="flex h-11 w-11 sm:h-12 sm:w-12 lg:h-14 lg:w-14 shrink-0 items-center justify-center rounded-xl sm:rounded-2xl"
                   style={{ background: field.soft, color: field.color }}
                 >
-                  <I n={field.icon as IconName} className="h-7 w-7" />
+                  <I n={field.icon as IconName} className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
                 </span>
-                <h2 className="font-display text-2xl font-extrabold leading-snug text-card sm:text-3xl">
+                <h2 className="font-display text-xl sm:text-2xl lg:text-3xl font-extrabold leading-snug text-card">
                   <span className="line-mask">{field.name}</span>
                 </h2>
                 {isVideoField(field) && (
-                  <span className="flex items-center gap-1 rounded-full bg-coral-soft px-2.5 py-1 text-[10px] font-bold text-coral">
-                    <I n="play" className="h-3 w-3" />
+                  <span className="flex items-center gap-1 rounded-full bg-coral-soft px-2 sm:px-2.5 py-0.5 sm:py-1 text-[9px] sm:text-[10px] font-bold text-coral">
+                    <I n="play" className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                     فيديو
                   </span>
                 )}
               </div>
-              <p className="mt-3 text-sm leading-7 text-ink-200">{field.desc || "بدون وصف"}</p>
+              <p className="mt-2 sm:mt-3 text-xs sm:text-sm leading-6 sm:leading-7 text-ink-200">{field.desc || "بدون وصف"}</p>
             </div>
 
             {/* عداد المشاهدات */}
             <div className="shrink-0">
               <div
-                className={`relative rounded-2xl border bg-ink-900/70 px-8 py-6 text-center backdrop-blur-sm transition-transform duration-300 ${
+                className={`relative rounded-xl sm:rounded-2xl border bg-ink-900/70 px-5 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6 text-center backdrop-blur-sm transition-transform duration-300 ${
                   justCounted ? "scale-[1.04]" : ""
                 }`}
                 style={{ borderColor: `${field.color}66` }}
               >
                 <Ticks className="text-ink-700" />
-                <p className="flex items-center justify-center gap-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-300">
+                <p className="flex items-center justify-center gap-1.5 sm:gap-2 font-mono text-[9px] sm:text-[10px] font-semibold tracking-[0.25em] text-ink-300">
                   <span style={{ color: field.color }}>
-                    <I n="eye" className="h-4 w-4" />
+                    <I n="eye" className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
                   </span>
                   PAGE VIEWS / مشاهدات الصفحة
                 </p>
-                <p className="mt-2 font-mono text-5xl font-bold leading-none tracking-tight text-card">
+                <p className="mt-1.5 sm:mt-2 font-mono text-3xl sm:text-4xl lg:text-5xl font-bold leading-none tracking-tight text-card">
                   <CountUp value={views} />
                 </p>
-                <p className="mt-2.5 text-[11px] font-semibold text-ink-400">
+                <p className="mt-2 sm:mt-2.5 text-[10px] sm:text-[11px] font-semibold text-ink-400">
                   {justCounted ? (
-                    <span className="flex items-center justify-center gap-1.5 text-gold">
-                      <span className="pulse-dot h-2 w-2 rounded-full bg-gold text-gold" />
+                    <span className="flex items-center justify-center gap-1 sm:gap-1.5 text-gold">
+                      <span className="pulse-dot h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-gold text-gold" />
                       +1 مشاهدة الآن — تمت المزامنة
                     </span>
                   ) : (
@@ -153,7 +153,7 @@ export default function FieldDetail({ id, go }: { id: string; go: (v: View) => v
       </Reveal>
 
       {/* مؤشرات سريعة */}
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {[
           { label: "مشروع", en: "PROJECTS", value: projects.length, tint: "text-brand-deep", icon: "briefcase" as IconName, bg: "bg-brand-soft text-brand" },
           { label: "مشاهدة", en: "VIEWS", value: views, tint: "text-gold-deep", icon: "eye" as IconName, bg: "bg-gold-soft text-gold-deep" },
@@ -161,37 +161,38 @@ export default function FieldDetail({ id, go }: { id: string; go: (v: View) => v
           { label: "إنجاز", en: "RESULTS", value: achCount, tint: "text-coral", icon: "trophy" as IconName, bg: "bg-coral-soft text-coral" },
         ].map((s, i) => (
           <Reveal key={s.en} delay={i * 70}>
-            <div className="relative overflow-hidden rounded-xl border border-line bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-18px_rgba(11,36,28,0.25)]">
+            <div className="relative overflow-hidden rounded-xl border border-line bg-card p-3 sm:p-4 lg:p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-18px_rgba(11,36,28,0.25)]">
               <Ticks className="text-ink-200" />
               <div className="flex items-start justify-between">
-                <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${s.bg}`}>
-                  <I n={s.icon} className="h-5 w-5" />
+                <span className={`flex h-8 w-8 sm:h-9 sm:w-9 lg:h-10 lg:w-10 items-center justify-center rounded-lg sm:rounded-xl ${s.bg}`}>
+                  <I n={s.icon} className="h-4 w-4 sm:h-4.5 sm:w-4.5 lg:h-5 lg:w-5" />
                 </span>
-                <span className="font-mono text-[9px] font-semibold tracking-[0.25em] text-ink-300">{s.en}</span>
+                <span className="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.25em] text-ink-300">{s.en}</span>
               </div>
-              <p className={`mt-4 font-mono text-4xl font-bold tracking-tight ${s.tint}`}>
+              <p className={`mt-2.5 sm:mt-3 lg:mt-4 font-mono text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight ${s.tint}`}>
                 <CountUp value={s.value} />
               </p>
-              <p className="mt-1 font-display text-[13px] font-bold text-ink-600">{s.label}</p>
+              <p className="mt-0.5 sm:mt-1 font-display text-[11px] sm:text-[12px] lg:text-[13px] font-bold text-ink-600">{s.label}</p>
             </div>
           </Reveal>
         ))}
       </div>
 
       {/* مشاريع المجال */}
-      <div className="rise flex items-center justify-between">
-        <div>
+      <div className="rise flex items-center justify-between gap-2">
+        <div className="min-w-0 flex-1">
           <Overline>مشاريع المجال</Overline>
-          <h3 className="mt-2 font-display text-xl font-extrabold text-ink-900">
+          <h3 className="mt-2 font-display text-base sm:text-lg lg:text-xl font-extrabold text-ink-900">
             {projects.length ? `أحدث شغلنا في ${field.name}` : "لا مشاريع بعد"}
           </h3>
         </div>
         <button
           onClick={() => go({ name: "project-form" })}
-          className="btn-press flex items-center gap-2 rounded-xl bg-gold px-5 py-2.5 font-display text-sm font-extrabold text-ink-950 hover:brightness-105"
+          className="btn-press flex shrink-0 items-center gap-1.5 sm:gap-2 rounded-xl bg-gold px-3 sm:px-4 lg:px-5 py-2 sm:py-2.5 font-display text-xs sm:text-sm font-extrabold text-ink-950 hover:brightness-105"
         >
-          <I n="plus" className="h-4 w-4" />
-          مشروع جديد
+          <I n="plus" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          <span className="hidden sm:inline">مشروع جديد</span>
+          <span className="sm:hidden">جديد</span>
         </button>
       </div>
 

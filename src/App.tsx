@@ -840,30 +840,30 @@ function Shell() {
       <div className="flex min-w-0 flex-1 flex-col">
         {/* الترويسة */}
         <header className="sticky top-0 z-30 border-b border-line bg-paper/85 backdrop-blur-md">
-          <div className="mx-auto flex w-full max-w-[1280px] items-center gap-3 px-4 py-3.5 sm:px-6 lg:px-8">
+          <div className="mx-auto flex w-full max-w-[1280px] items-center gap-2 sm:gap-3 px-3 sm:px-4 lg:px-8 py-2.5 sm:py-3.5">
             <button
-              className="btn-press rounded-lg border border-ink-200 bg-card p-2 text-ink-600 lg:hidden"
+              className="btn-press rounded-lg border border-ink-200 bg-card p-1.5 sm:p-2 text-ink-600 lg:hidden"
               onClick={() => setMenu(true)}
               aria-label="فتح القائمة"
             >
-              <I n="menu" className="h-5 w-5" />
+              <I n="menu" className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
-            <div className="min-w-0">
-              <p className="font-mono text-[10px] font-semibold tracking-[0.28em] text-ink-400">
+            <div className="min-w-0 flex-1">
+              <p className="font-mono text-[9px] sm:text-[10px] font-semibold tracking-[0.28em] text-ink-400">
                 DUBLEX / {meta.en}
               </p>
-              <h1 className="overflow-hidden font-display text-lg font-extrabold leading-7 text-ink-900 sm:text-xl">
+              <h1 className="overflow-hidden font-display text-sm sm:text-lg lg:text-xl font-extrabold leading-6 sm:leading-7 text-ink-900">
                 <ScrambleText key={view.name + (view.projectId ?? "") + (view.articleId ?? "") + (view.fieldId ?? "")} text={meta.t} />
               </h1>
             </div>
-            <div className="ms-auto flex items-center gap-2.5">
+            <div className="ms-auto flex items-center gap-1.5 sm:gap-2.5">
               <span className="hidden items-center gap-1.5 font-mono text-[11px] font-bold text-ink-400 md:flex">
                 <I n="calendar" className="h-4 w-4 text-brand" />
                 {today}
               </span>
               <SyncBadge onClick={() => setCloudOpen(true)} />
-              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl border border-line bg-card lg:hidden">
-                <img src={LOGO_URL} alt="دوبلكس" className="h-8 w-8 object-contain" />
+              <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center overflow-hidden rounded-lg sm:rounded-xl border border-line bg-card lg:hidden">
+                <img src={LOGO_URL} alt="دوبلكس" className="h-7 w-7 sm:h-8 sm:w-8 object-contain" />
               </div>
             </div>
           </div>
@@ -875,7 +875,7 @@ function Shell() {
         <main className="flex-1">
           <div
             key={view.name + (view.projectId ?? "") + (view.articleId ?? "") + (view.fieldId ?? "")}
-            className="rise mx-auto w-full max-w-[1280px] px-4 py-7 sm:px-6 lg:px-8"
+            className="rise mx-auto w-full max-w-[1280px] px-3 sm:px-4 lg:px-8 py-5 sm:py-7"
           >
             {view.name === "overview" && <Overview go={go} onCloud={() => setCloudOpen(true)} />}
             {view.name === "fields" && <Fields go={go} />}
@@ -890,14 +890,15 @@ function Shell() {
         </main>
 
         <footer className="border-t border-line bg-card/60">
-          <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
-            <span className="relative flex items-center gap-2.5 text-[12px] font-semibold text-ink-500">
+          <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
+            <span className="relative flex items-center gap-1.5 sm:gap-2.5 text-[11px] sm:text-[12px] font-semibold text-ink-500">
               <Ticks className="text-ink-200" />
-              <img src={LOGO_URL} alt="" className="h-6 w-6 rounded-md object-contain" />
-              دوبلكس — فريق تكنولوجي يبني ويسوّق ويصمّم
+              <img src={LOGO_URL} alt="" className="h-5 w-5 sm:h-6 sm:w-6 rounded-md object-contain" />
+              <span className="hidden sm:inline">دوبلكس — فريق تكنولوجي يبني ويسوّق ويصمّم</span>
+              <span className="sm:hidden">دوبلكس</span>
             </span>
-            <span className="font-mono text-[10px] font-semibold tracking-[0.2em] text-ink-300">
-              © 2025 DUBLEX TEAM
+            <span className="font-mono text-[9px] sm:text-[10px] font-semibold tracking-[0.2em] text-ink-300">
+              © 2025 DUBLEX
             </span>
           </div>
         </footer>
