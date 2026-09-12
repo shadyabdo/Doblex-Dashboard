@@ -125,6 +125,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   /* أثناء الترحيل نتجاهل بيانات السحابة حتى يكتمل الدفع الأول (مسح التجريبي) */
   const migrationPendingRef = useRef(firstRunRef.current);
   const unsubRef = useRef<(() => void) | null>(null);
+  /* flag يقول إن في تغيير محلي بيحصل */
+  const localChangeRef = useRef(false);
 
   useEffect(() => {
     syncRef.current = sync;
@@ -143,13 +145,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   /** رفع البيانات للسحابة */
-  const pushToCloud = (data: Db) => {
+  const pushToCloud = (data: Db): Promise<void> => {
     const ref = dbRef();
-    if (!ref) return;
+    if (!ref) return Promise.resolve();
     const ts = Date.now();
     writingRef.current = true;
     remoteTsRef.current = ts;
-    setDoc(ref, { ...data, updatedAt: ts })
+    return setDoc(ref, { ...data, updatedAt: ts })
       .then(() => {
         writingRef.current = false;
         migrationPendingRef.current = false;
@@ -215,23 +217,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         (snap) => {
           window.clearTimeout(timeoutId);
           if (migrationPendingRef.current) return; /* انتظر اكتمال المسح الأول */
+          // لو في تغيير محلي بيحصل، نتجاهل أي تحديث من Firestore
+          if (localChangeRef.current) return;
           if (snap.exists()) {
             const data = snap.data() as Db;
             const ts = data.updatedAt ?? 0;
-            if (!writingRef.current && ts > remoteTsRef.current) {
-              remoteTsRef.current = ts;
-              setDb(
-                normalizeDb({
-                  fields: data.fields ?? [],
-                  projects: data.projects ?? [],
-                  articles: data.articles ?? [],
-                })
-              );
-            }
+            // لو إحنا اللي كتبنا، نتجاهل التحديث من Firestore
+            if (writingRef.current) return;
+            // لو البيانات من Firestore أقدم من المحلية، نتجاهلها
+            if (ts <= remoteTsRef.current) return;
+            
+            remoteTsRef.current = ts;
+            
+            // Merge logic: لو البيانات من Firestore ناقصة، نستخدم البيانات المحلية
+            const localDb = dbLatestRef.current;
+            const mergedDb = {
+              fields: data.fields && data.fields.length > 0 ? data.fields : localDb.fields,
+              projects: data.projects && data.projects.length > 0 ? data.projects : localDb.projects,
+              articles: data.articles && data.articles.length > 0 ? data.articles : localDb.articles,
+            };
+            
+            setDb(normalizeDb(mergedDb));
           } else {
             /* المستند لم يُنشأ بعد: نرفع بياناتنا المحلية */
             window.setTimeout(() => {
-              if (!writingRef.current && !migrationPendingRef.current)
+              if (!writingRef.current && !migrationPendingRef.current && !localChangeRef.current)
                 pushToCloud(dbLatestRef.current);
             }, 1200);
           }
@@ -263,8 +273,21 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       /* المساحة ممتلئة */
     }
     if (syncRef.current.mode !== "cloud") return;
-    const t = window.setTimeout(() => pushToCloud(db), 900);
-    return () => window.clearTimeout(t);
+    
+    // نرفع flag يقول إن في تغيير محلي بيحصل
+    localChangeRef.current = true;
+    
+    const t = window.setTimeout(() => {
+      pushToCloud(db).finally(() => {
+        // ننزل flag بعد ما pushToCloud يخلص
+        localChangeRef.current = false;
+      });
+    }, 900);
+    
+    return () => {
+      window.clearTimeout(t);
+      localChangeRef.current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db]);
 
