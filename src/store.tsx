@@ -108,6 +108,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const localChangeRef = useRef(false);
   const fromFirestoreRef = useRef(false); // flag يقول إن التغيير جاي من Firestore
   const lastUploadedDbRef = useRef(db); // نخزن الـ db اللي ات رفع آخر مرة
+  const resettingRef = useRef(false); // flag يقول إننا في وضع المسح
 
   useEffect(() => {
     syncRef.current = sync;
@@ -170,6 +171,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       unsubRef.current = onSnapshot(
         ref,
         (snap) => {
+          // لو في وضع المسح، نتجاهل أي تغييرات
+          if (resettingRef.current) return;
           if (localChangeRef.current) return;
           if (snap.exists()) {
             const data = snap.data() as Db;
@@ -271,6 +274,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
 
       try {
+        // تشغيل flag المسح
+        resettingRef.current = true;
+        
         // إيقاف الـ listener مؤقتًا
         unsubRef.current?.();
         unsubRef.current = null;
@@ -285,14 +291,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         setDb(emptyDb);
         lastUploadedDbRef.current = emptyDb;
         
+        // استنى شوية عشان الـ listener ما يسمعش التغييرات القديمة
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         // إعادة تشغيل الـ listener
         const cfg = getEffectiveConfig();
         if (cfg && !isAutoConnectDisabled()) {
           activate(cfg);
         }
         
+        // إيقاف flag المسح بعد ما الـ listener الجديد يشتغل
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        resettingRef.current = false;
+        
         toast("تم مسح كل البيانات بنجاح", "success");
       } catch (e) {
+        resettingRef.current = false;
         toast("فشل في مسح البيانات: " + fbMessage(e), "error");
       }
     },
