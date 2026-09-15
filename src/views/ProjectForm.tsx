@@ -59,7 +59,7 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
   const [title, setTitle] = useState(editing?.title ?? "");
   const [subtitle, setSubtitle] = useState(editing?.subtitle ?? "");
   const [client, setClient] = useState(editing?.client ?? "");
-  const [year, setYear] = useState(editing?.year ?? "2025");
+  const [year, setYear] = useState(editing?.year ?? "2026");
   const [status, setStatus] = useState<ProjectStatus>(editing?.status ?? "active");
   const [cover, setCover] = useState(editing?.cover ?? "");
   const [coverUrl, setCoverUrl] = useState("");
@@ -281,7 +281,7 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
           </div>
           <div>
             <label className="lbl" htmlFor="p-year">السنة</label>
-            <input id="p-year" className="inp font-mono" inputMode="numeric" placeholder="2025" value={year} onChange={(e) => setYear(e.target.value)} />
+            <input id="p-year" className="inp font-mono" inputMode="numeric" placeholder="2026" value={year} onChange={(e) => setYear(e.target.value)} />
           </div>
           <div>
             <span className="lbl">حالة المشروع</span>

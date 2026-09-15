@@ -282,7 +282,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
             {/* Footer */}
             <div className="mt-8 pt-6 border-t border-line/50 text-center">
               <p className="text-xs text-ink-400 font-medium">
-                © 2025 Dublex Team. جميع الحقوق محفوظة.
+                © 2026 Dublex Team. جميع الحقوق محفوظة.
               </p>
             </div>
           </div>
