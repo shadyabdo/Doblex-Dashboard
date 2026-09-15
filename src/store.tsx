@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
@@ -185,9 +186,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             fromFirestoreRef.current = true;
             setDb(normalizeDb(mergedDb));
             // نرجع الـ flag بعد ما React يخلص الـ render
-            setTimeout(() => {
+            Promise.resolve().then(() => {
               fromFirestoreRef.current = false;
-            }, 0);
+            });
           }
           setSync((s) =>
             s.mode === "error"
@@ -203,7 +204,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   /* رفع البيانات للسحابة عند أي تغيير */
-  useEffect(() => {
+  useLayoutEffect(() => {
     dbLatestRef.current = db;
     if (syncRef.current.mode !== "cloud") return;
     
