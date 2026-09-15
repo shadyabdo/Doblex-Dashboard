@@ -481,7 +481,6 @@ export function ScrambleText({ text, className = "" }: { text: string; className
 export function SyncBadge({ onClick }: { onClick?: () => void }) {
   const { sync } = useStore();
   const map = {
-    local: { dot: "bg-gold text-gold", label: "تخزين محلي" },
     connecting: { dot: "bg-gold text-gold pulse-dot", label: "جارِ الاتصال…" },
     cloud: { dot: "bg-brand text-brand pulse-dot", label: "متزامن مع فايربيز" },
     error: { dot: "bg-coral text-coral", label: "خطأ بالاتصال" },

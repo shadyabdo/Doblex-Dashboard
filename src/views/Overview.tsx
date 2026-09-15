@@ -176,7 +176,7 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
                       ? "جارِ الاتصال بفايربيز…"
                       : sync.mode === "error"
                         ? "خطأ بالاتصال — راجع قواعد الأمان"
-                        : "تخزين محلي — اربط فايربيز من الهيدر"}
+                        : "الاتصال معطّل — فعّله من إعدادات فايربيز"}
                 </span>
               </div>
             </div>
@@ -407,7 +407,7 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
                     ? "جارِ الاتصال…"
                     : sync.mode === "error"
                       ? "خطأ بالاتصال"
-                      : "تخزين محلي"}
+                      : "الاتصال معطّل"}
               </span>
             </div>
             <p className="mt-2 text-[11px] sm:text-[12px] leading-5 sm:leading-6 text-ink-400">

@@ -317,10 +317,10 @@ function CloudModal({
           كل أعضاء الفريق. أكواد الربط مقفولة ومحمية ولا يفتحها إلا مطوّر الفريق.
         </p>
 
-        {sync.mode === "local" && isAutoConnectDisabled() && (
+        {isAutoConnectDisabled() && (
           <div className="pop mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-gold/40 bg-gold-soft/50 px-4 py-3">
             <span className="flex-1 text-[12px] font-bold leading-6 text-ink-700">
-              الاتصال التلقائي متوقف لأنك اخترت «العودة للتخزين المحلي» سابقًا.
+              الاتصال معطّل — فعّله للبدء في استخدام الداشبورد.
             </span>
             <button
               onClick={() => {
@@ -330,7 +330,7 @@ function CloudModal({
               className="btn-press flex items-center gap-2 rounded-xl bg-gold px-4 py-2 font-display text-[12px] font-extrabold text-ink-950 hover:brightness-105"
             >
               <I n="sync" className="h-4 w-4" />
-              إعادة الاتصال الآن
+              تفعيل الاتصال
             </button>
           </div>
         )}
