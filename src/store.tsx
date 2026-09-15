@@ -184,9 +184,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               articles: Array.isArray(data.articles) ? data.articles : [],
             };
             
+            const normalizedData = normalizeDb(mergedDb);
+            
             // نعمل flag يقول إن التغيير جاي من Firestore
             fromFirestoreRef.current = true;
-            setDb(normalizeDb(mergedDb));
+            // نخزن البيانات normalized عشان المقارنة تشتغل صح
+            lastUploadedDbRef.current = normalizedData;
+            setDb(normalizedData);
             // نرجع الـ flag بعد ما React يخلص الـ render
             Promise.resolve().then(() => {
               fromFirestoreRef.current = false;
