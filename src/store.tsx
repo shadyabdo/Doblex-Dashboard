@@ -151,7 +151,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   /** تفعيل الاتصال والاستماع للتغييرات */
-  const activate = (cfg: FirebaseConfig) => {
+  const activate = async (cfg: FirebaseConfig) => {
     unsubRef.current?.();
     const res = initFirebase(cfg);
     if (!res.ok) {
@@ -165,55 +165,60 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     setSync({ mode: "connecting", projectId: cfg.projectId });
 
-    void (async () => {
+    // نحاول نعمل sign in الأول
+    try {
       await Promise.race([
         ensureSignedIn(),
-        new Promise((r) => setTimeout(r, 8000)),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 5000)),
       ]);
+    } catch (e) {
+      // لو فشل sign in، نستمر على أي حال - ممكن القواعد مفتوحة
+      console.warn("Sign in failed, continuing anyway:", e);
+    }
 
-      unsubRef.current = onSnapshot(
-        ref,
-        (snap) => {
-          // لو في وضع المسح، نتجاهل أي تغييرات
-          if (resettingRef.current) return;
-          if (localChangeRef.current) return;
-          if (snap.exists()) {
-            const data = snap.data() as Db;
-            const ts = data.updatedAt ?? 0;
-            if (writingRef.current) return;
-            if (ts <= remoteTsRef.current) return;
-            
-            remoteTsRef.current = ts;
-            
-            const mergedDb = {
-              fields: Array.isArray(data.fields) ? data.fields : [],
-              projects: Array.isArray(data.projects) ? data.projects : [],
-              articles: Array.isArray(data.articles) ? data.articles : [],
-            };
-            
-            const normalizedData = normalizeDb(mergedDb);
-            
-            // نعمل flag يقول إن التغيير جاي من Firestore
-            fromFirestoreRef.current = true;
-            // نخزن البيانات normalized عشان المقارنة تشتغل صح
-            lastUploadedDbRef.current = normalizedData;
-            setDb(normalizedData);
-            // نرجع الـ flag بعد ما React يخلص الـ render
-            Promise.resolve().then(() => {
-              fromFirestoreRef.current = false;
-            });
-          }
-          setSync((s) =>
-            s.mode === "error"
-              ? s
-              : { mode: "cloud", projectId: cfg.projectId, lastSync: Date.now() }
-          );
-        },
-        (e) => {
-          setSync({ mode: "error", projectId: cfg.projectId, error: fbMessage(e) });
+    // نبدأ الـ listener بعد ما عملنا sign in
+    unsubRef.current = onSnapshot(
+      ref,
+      (snap) => {
+        // لو في وضع المسح، نتجاهل أي تغييرات
+        if (resettingRef.current) return;
+        if (localChangeRef.current) return;
+        if (snap.exists()) {
+          const data = snap.data() as Db;
+          const ts = data.updatedAt ?? 0;
+          if (writingRef.current) return;
+          if (ts <= remoteTsRef.current) return;
+          
+          remoteTsRef.current = ts;
+          
+          const mergedDb = {
+            fields: Array.isArray(data.fields) ? data.fields : [],
+            projects: Array.isArray(data.projects) ? data.projects : [],
+            articles: Array.isArray(data.articles) ? data.articles : [],
+          };
+          
+          const normalizedData = normalizeDb(mergedDb);
+          
+          // نعمل flag يقول إن التغيير جاي من Firestore
+          fromFirestoreRef.current = true;
+          // نخزن البيانات normalized عشان المقارنة تشتغل صح
+          lastUploadedDbRef.current = normalizedData;
+          setDb(normalizedData);
+          // نرجع الـ flag بعد ما React يخلص الـ render
+          Promise.resolve().then(() => {
+            fromFirestoreRef.current = false;
+          });
         }
-      );
-    })();
+        setSync((s) =>
+          s.mode === "error"
+            ? s
+            : { mode: "cloud", projectId: cfg.projectId, lastSync: Date.now() }
+        );
+      },
+      (e) => {
+        setSync({ mode: "error", projectId: cfg.projectId, error: fbMessage(e) });
+      }
+    );
   };
 
   /* رفع البيانات للسحابة عند أي تغيير */
@@ -244,7 +249,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   /* عند الفتح: الاتصال التلقائي بمشروع دوبلكس */
   useEffect(() => {
-    if (!isAutoConnectDisabled()) activate(getEffectiveConfig());
+    if (!isAutoConnectDisabled()) {
+      void activate(getEffectiveConfig());
+    }
     return () => unsubRef.current?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -259,7 +266,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       saveStoredConfig(cfg);
       setAutoConnectDisabled(false);
       remoteTsRef.current = 0;
-      activate(cfg);
+      void activate(cfg);
     },
     disconnectFirebase: () => {
       unsubRef.current?.();

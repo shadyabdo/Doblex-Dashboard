@@ -833,22 +833,12 @@ function Shell() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return sessionStorage.getItem("dublex-logged-in") === "true";
   });
-  const { db, sync, connectFirebase } = useStore();
+  const { db, sync } = useStore();
 
   const handleLogin = () => {
     sessionStorage.setItem("dublex-logged-in", "true");
     setIsLoggedIn(true);
   };
-
-  // إعادة الاتصال بـ Firestore بعد تسجيل الدخول
-  useEffect(() => {
-    if (isLoggedIn && !isAutoConnectDisabled() && sync.mode !== "cloud") {
-      // إعادة الاتصال إذا لم يكن متصلًا
-      setTimeout(() => {
-        connectFirebase(getEffectiveConfig());
-      }, 100);
-    }
-  }, [isLoggedIn, sync.mode, connectFirebase]);
 
   if (!isLoggedIn) {
     return <LoginScreen onLogin={handleLogin} />;
