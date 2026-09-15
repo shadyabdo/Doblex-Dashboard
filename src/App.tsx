@@ -93,7 +93,7 @@ const STRUCTURE_SAMPLE = `{
       "title": "منصة نوفا ستور",
       "subtitle": "متجر إلكتروني متكامل",
       "client": "نوفا فاشون",
-      "year": "2025",
+      "year": "2026",
       "status": "done",             // planning | active | done
       "cover": "https://.../image.png",
       "images": [ { "id": "i1", "src": "https://.../photo.png" } ],
@@ -833,12 +833,22 @@ function Shell() {
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return sessionStorage.getItem("dublex-logged-in") === "true";
   });
-  const { db, sync } = useStore();
+  const { db, sync, connectFirebase } = useStore();
 
   const handleLogin = () => {
     sessionStorage.setItem("dublex-logged-in", "true");
     setIsLoggedIn(true);
   };
+
+  // إعادة الاتصال بـ Firestore بعد تسجيل الدخول
+  useEffect(() => {
+    if (isLoggedIn && !isAutoConnectDisabled() && sync.mode !== "cloud") {
+      // إعادة الاتصال إذا لم يكن متصلًا
+      setTimeout(() => {
+        connectFirebase(getEffectiveConfig());
+      }, 100);
+    }
+  }, [isLoggedIn, sync.mode, connectFirebase]);
 
   if (!isLoggedIn) {
     return <LoginScreen onLogin={handleLogin} />;
@@ -950,7 +960,7 @@ function Shell() {
               <span className="sm:hidden">دوبلكس</span>
             </span>
             <span className="font-mono text-[9px] sm:text-[10px] font-semibold tracking-[0.2em] text-ink-300">
-              © 2025 DUBLEX
+              © 2026 DUBLEX
             </span>
           </div>
         </footer>
