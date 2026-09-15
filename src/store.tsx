@@ -104,6 +104,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const remoteTsRef = useRef(0);
   const unsubRef = useRef<(() => void) | null>(null);
   const localChangeRef = useRef(false);
+  const fromFirestoreRef = useRef(false); // flag يقول إن التغيير جاي من Firestore
 
   useEffect(() => {
     syncRef.current = sync;
@@ -180,7 +181,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               articles: Array.isArray(data.articles) ? data.articles : [],
             };
             
+            // نعمل flag يقول إن التغيير جاي من Firestore
+            fromFirestoreRef.current = true;
             setDb(normalizeDb(mergedDb));
+            // نرجع الـ flag بعد ما React يخلص الـ render
+            setTimeout(() => {
+              fromFirestoreRef.current = false;
+            }, 0);
           }
           setSync((s) =>
             s.mode === "error"
@@ -199,6 +206,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     dbLatestRef.current = db;
     if (syncRef.current.mode !== "cloud") return;
+    
+    // لو التغيير جاي من Firestore، مش نرفعه تاني
+    if (fromFirestoreRef.current) return;
     
     localChangeRef.current = true;
     pushToCloud(db).finally(() => {
