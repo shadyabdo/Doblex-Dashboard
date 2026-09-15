@@ -66,6 +66,9 @@ interface StoreApi {
   connectFirebase: (cfg: FirebaseConfig) => void;
   disconnectFirebase: () => void;
   resetAllData: () => Promise<void>;
+  clearAllData: () => Promise<void>;
+  exportData: () => void;
+  importData: (jsonString: string) => Promise<void>;
   addField: (f: Omit<Field, "id" | "createdAt">) => void;
   updateField: (id: string, patch: Partial<Field>) => void;
   deleteField: (id: string) => void;
@@ -308,6 +311,132 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       } catch (e) {
         resettingRef.current = false;
         toast("فشل في مسح البيانات: " + fbMessage(e), "error");
+      }
+    },
+    clearAllData: async () => {
+      try {
+        // تشغيل flag المسح
+        resettingRef.current = true;
+        
+        // إيقاف الـ listener مؤقتًا
+        unsubRef.current?.();
+        unsubRef.current = null;
+        
+        // مسح localStorage
+        localStorage.clear();
+        
+        // مسح Firestore لو متصل
+        const ref = dbRef();
+        if (ref && syncRef.current.mode === "cloud") {
+          const emptyDb: Db = { fields: [], projects: [], articles: [] };
+          writingRef.current = true;
+          await setDoc(ref, { ...emptyDb, updatedAt: Date.now() });
+          writingRef.current = false;
+        }
+        
+        // مسح الـ state المحلي
+        const emptyDb: Db = { fields: [], projects: [], articles: [] };
+        setDb(emptyDb);
+        lastUploadedDbRef.current = emptyDb;
+        
+        // استنى شوية
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // إعادة تشغيل الـ listener لو كان متصل
+        const cfg = getEffectiveConfig();
+        if (cfg && !isAutoConnectDisabled() && syncRef.current.mode === "cloud") {
+          activate(cfg);
+        }
+        
+        // إيقاف flag المسح
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        resettingRef.current = false;
+        
+        toast("تم مسح كل البيانات من localStorage و Firestore", "success");
+      } catch (e) {
+        resettingRef.current = false;
+        toast("فشل في مسح البيانات: " + fbMessage(e), "error");
+      }
+    },
+    exportData: () => {
+      try {
+        const dataToExport = {
+          version: "1.0",
+          exportDate: new Date().toISOString(),
+          fields: db.fields,
+          projects: db.projects,
+          articles: db.articles,
+        };
+        
+        const jsonString = JSON.stringify(dataToExport, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `dublex-backup-${new Date().toISOString().split("T")[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        toast("تم تصدير البيانات بنجاح", "success");
+      } catch (e) {
+        toast("فشل في تصدير البيانات", "error");
+      }
+    },
+    importData: async (jsonString: string) => {
+      try {
+        const imported = JSON.parse(jsonString);
+        
+        // التحقق من صحة البيانات
+        if (!imported.fields || !imported.projects || !imported.articles) {
+          throw new Error("ملف غير صالح");
+        }
+        
+        // تشغيل flag المسح
+        resettingRef.current = true;
+        
+        // إيقاف الـ listener مؤقتًا
+        unsubRef.current?.();
+        unsubRef.current = null;
+        
+        // إعداد البيانات الجديدة
+        const newDb: Db = {
+          fields: imported.fields,
+          projects: imported.projects,
+          articles: imported.articles,
+        };
+        
+        // تحديث الـ state المحلي
+        setDb(newDb);
+        lastUploadedDbRef.current = newDb;
+        
+        // رفع البيانات لـ Firestore لو متصل
+        const ref = dbRef();
+        if (ref && syncRef.current.mode === "cloud") {
+          writingRef.current = true;
+          await setDoc(ref, { ...newDb, updatedAt: Date.now() });
+          writingRef.current = false;
+        }
+        
+        // استنى شوية
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // إعادة تشغيل الـ listener لو كان متصل
+        const cfg = getEffectiveConfig();
+        if (cfg && !isAutoConnectDisabled() && syncRef.current.mode === "cloud") {
+          activate(cfg);
+        }
+        
+        // إيقاف flag المسح
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        resettingRef.current = false;
+        
+        toast("تم استيراد البيانات بنجاح", "success");
+      } catch (e) {
+        resettingRef.current = false;
+        toast("فشل في استيراد البيانات: " + (e instanceof Error ? e.message : "ملف غير صالح"), "error");
       }
     },
     addField: (f) =>

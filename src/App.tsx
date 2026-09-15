@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { StoreProvider, useStore } from "./store";
 import Sidebar from "./components/Sidebar";
+import LoginScreen from "./components/LoginScreen";
 import { Marquee, Modal, ScrambleText, SyncBadge, Toasts, Ticks } from "./components/ui";
 import Overview from "./views/Overview";
 import Fields from "./views/Fields";
@@ -829,7 +830,19 @@ function Shell() {
   const [view, setView] = useState<View>({ name: "overview" });
   const [menu, setMenu] = useState(false);
   const [cloudOpen, setCloudOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return sessionStorage.getItem("dublex-logged-in") === "true";
+  });
   const { db, sync } = useStore();
+
+  const handleLogin = () => {
+    sessionStorage.setItem("dublex-logged-in", "true");
+    setIsLoggedIn(true);
+  };
+
+  if (!isLoggedIn) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
 
   const go = (v: View) => {
     setView(v);

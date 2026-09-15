@@ -33,7 +33,7 @@ function Tile({
 }
 
 export default function Overview({ go, onCloud }: { go: (v: View) => void; onCloud: () => void }) {
-  const { db, sync } = useStore();
+  const { db, sync, clearAllData, exportData, importData } = useStore();
 
   const totalGoals = db.projects.reduce((s, p) => s + p.goals.length, 0);
   const doneGoals = db.projects.reduce((s, p) => s + p.goals.filter((g) => g.done).length, 0);
@@ -243,6 +243,59 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
           </Reveal>
         ))}
       </div>
+
+      {/* إدارة البيانات */}
+      <Reveal delay={100}>
+        <div className="rounded-xl border border-line bg-card p-4 sm:p-5">
+          <Overline>إدارة البيانات</Overline>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button
+              onClick={exportData}
+              className="btn-press flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 font-display text-sm font-bold text-card transition-colors hover:bg-brand-deep"
+            >
+              <I n="upload" className="h-4 w-4" />
+              تصدير البيانات
+            </button>
+            <button
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = ".json";
+                input.onchange = async (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (!file) return;
+                  const text = await file.text();
+                  await importData(text);
+                };
+                input.click();
+              }}
+              className="btn-press flex items-center gap-2 rounded-xl bg-gold px-4 py-2.5 font-display text-sm font-bold text-ink-950 transition-colors hover:brightness-105"
+            >
+              <I n="cloud" className="h-4 w-4" />
+              استيراد البيانات
+            </button>
+            <button
+              onClick={async () => {
+                const confirmed = window.confirm(
+                  "⚠️ تحذير: هل أنت متأكد من مسح كل البيانات؟\n\nسيتم حذف:\n- كل المجالات\n- كل المشاريع\n- كل المقالات\n- البيانات من localStorage و Firestore\n\nلا يمكن التراجع عن هذه العملية!"
+                );
+                if (confirmed) {
+                  const doubleConfirmed = window.confirm(
+                    "⚠️ تأكيد نهائي: هل أنت متأكد تمامًا؟\n\nسيتم مسح كل البيانات نهائيًا!"
+                  );
+                  if (doubleConfirmed) {
+                    await clearAllData();
+                  }
+                }
+              }}
+              className="btn-press flex items-center gap-2 rounded-xl border-2 border-coral/40 bg-coral-soft/30 px-4 py-2.5 font-display text-sm font-bold text-coral transition-colors hover:bg-coral hover:text-card"
+            >
+              <I n="trash" className="h-4 w-4" />
+              مسح كل البيانات
+            </button>
+          </div>
+        </div>
+      </Reveal>
 
       {/* الشبكة الرئيسية */}
       <div className="grid grid-cols-12 gap-3 sm:gap-4">
