@@ -30,7 +30,6 @@ export default function Sidebar({
     (key === "articles" && view.name === "article-form");
 
   const syncMeta = {
-    local: { dot: "bg-gold text-gold", label: "تخزين محلي", sub: "فعّل فايربيز للمزامنة الفعلية" },
     connecting: { dot: "bg-gold text-gold pulse-dot", label: "جارِ الاتصال…", sub: "نجهّز قناة المزامنة" },
     cloud: {
       dot: "bg-brand text-brand pulse-dot",

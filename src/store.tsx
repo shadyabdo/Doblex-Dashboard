@@ -2,13 +2,13 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
 } from "react";
-import { getDoc, onSnapshot, setDoc } from "firebase/firestore";
+import { onSnapshot, setDoc } from "firebase/firestore";
 import { toTags, type Article, type Db, type Field, type Project, type ToastMsg } from "./types";
-import { seedDb } from "./seed";
 import {
   clearStoredConfig,
   dbRef,
@@ -21,9 +21,6 @@ import {
   setAutoConnectDisabled,
   type FirebaseConfig,
 } from "./firebase";
-
-/* مفتاح تخزين جديد — بداية نظيفة بدون أي محتوى تجريبي */
-const KEY = "dublex-db-v3";
 
 const uid = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -52,7 +49,7 @@ function normalizeDb(d: Db): Db {
   };
 }
 
-export type SyncMode = "local" | "connecting" | "cloud" | "error";
+export type SyncMode = "connecting" | "cloud" | "error";
 export interface SyncState {
   mode: SyncMode;
   lastSync?: number;
@@ -87,32 +84,16 @@ interface StoreApi {
 const Ctx = createContext<StoreApi | null>(null);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const firstRunRef = useRef<boolean>(
-    typeof localStorage !== "undefined" && localStorage.getItem(KEY) === null
-  );
-
-  const [db, setDb] = useState<Db>(() => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw) {
-        const d = JSON.parse(raw) as Db;
-        if (
-          d &&
-          Array.isArray(d.fields) &&
-          Array.isArray(d.projects) &&
-          Array.isArray(d.articles)
-        )
-          return normalizeDb(d);
-      }
-    } catch {
-      /* بيانات تالفة → بداية نظيفة */
-    }
-    return seedDb;
+  // البيانات تبدأ فاضية وتتزامن مع Firestore
+  const [db, setDb] = useState<Db>({
+    fields: [],
+    projects: [],
+    articles: [],
   });
 
   const [sync, setSync] = useState<SyncState>(() =>
     isAutoConnectDisabled()
-      ? { mode: "local" }
+      ? { mode: "error", error: "الاتصال معطّل — فعّله من إعدادات فايربيز" }
       : { mode: "connecting", projectId: getEffectiveConfig().projectId }
   );
 
@@ -122,11 +103,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const syncRef = useRef(sync);
   const writingRef = useRef(false);
   const remoteTsRef = useRef(0);
-  /* أثناء الترحيل نتجاهل بيانات السحابة حتى يكتمل الدفع الأول (مسح التجريبي) */
-  const migrationPendingRef = useRef(firstRunRef.current);
   const unsubRef = useRef<(() => void) | null>(null);
-  /* flag يقول إن في تغيير محلي بيحصل */
   const localChangeRef = useRef(false);
+  const fromFirestoreRef = useRef(false); // flag يقول إن التغيير جاي من Firestore
+  const lastUploadedDbRef = useRef(db); // نخزن الـ db اللي ات رفع آخر مرة
 
   useEffect(() => {
     syncRef.current = sync;
@@ -151,10 +131,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const ts = Date.now();
     writingRef.current = true;
     remoteTsRef.current = ts;
+    lastUploadedDbRef.current = data; // نخزن الـ db اللي ات رفع
     return setDoc(ref, { ...data, updatedAt: ts })
       .then(() => {
         writingRef.current = false;
-        migrationPendingRef.current = false;
         setSync((s) =>
           s.mode === "error" ? s : { mode: "cloud", projectId: s.projectId, lastSync: ts }
         );
@@ -180,33 +160,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
     setSync({ mode: "connecting", projectId: cfg.projectId });
 
-    /* مهلة: لو المستمع لم يستجب نجسّ النبض ونستخرج الخطأ الحقيقي */
-    const timeoutId = window.setTimeout(() => {
-      void (async () => {
-        try {
-          await Promise.race([
-            getDoc(ref),
-            new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 10000)),
-          ]);
-          setSync((s) =>
-            s.mode === "connecting"
-              ? {
-                  mode: "error",
-                  projectId: cfg.projectId,
-                  error:
-                    "الاتصال بطيء جدًا — تأكد من الإنترنت ثم أعد المحاولة من نافذة فايربيز.",
-                }
-              : s
-          );
-        } catch (e) {
-          setSync({ mode: "error", projectId: cfg.projectId, error: fbMessage(e) });
-        }
-      })();
-    }, 12000);
-
     void (async () => {
-      /* الدخول المجهول أولًا وقبل أي قراءة — قواعد الإنتاج تشترط request.auth.
-         بمهلة 8 ثوانٍ حتى لا يتعطل الاتصال إن كانت خدمة المصادقة بطيئة أو محجوبة */
       await Promise.race([
         ensureSignedIn(),
         new Promise((r) => setTimeout(r, 8000)),
@@ -215,35 +169,28 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       unsubRef.current = onSnapshot(
         ref,
         (snap) => {
-          window.clearTimeout(timeoutId);
-          if (migrationPendingRef.current) return; /* انتظر اكتمال المسح الأول */
-          // لو في تغيير محلي بيحصل، نتجاهل أي تحديث من Firestore
           if (localChangeRef.current) return;
           if (snap.exists()) {
             const data = snap.data() as Db;
             const ts = data.updatedAt ?? 0;
-            // لو إحنا اللي كتبنا، نتجاهل التحديث من Firestore
             if (writingRef.current) return;
-            // لو البيانات من Firestore أقدم من المحلية، نتجاهلها
             if (ts <= remoteTsRef.current) return;
             
             remoteTsRef.current = ts;
             
-            // Merge logic: لو البيانات من Firestore ناقصة، نستخدم البيانات المحلية
-            const localDb = dbLatestRef.current;
             const mergedDb = {
-              fields: data.fields && data.fields.length > 0 ? data.fields : localDb.fields,
-              projects: data.projects && data.projects.length > 0 ? data.projects : localDb.projects,
-              articles: data.articles && data.articles.length > 0 ? data.articles : localDb.articles,
+              fields: Array.isArray(data.fields) ? data.fields : [],
+              projects: Array.isArray(data.projects) ? data.projects : [],
+              articles: Array.isArray(data.articles) ? data.articles : [],
             };
             
+            // نعمل flag يقول إن التغيير جاي من Firestore
+            fromFirestoreRef.current = true;
             setDb(normalizeDb(mergedDb));
-          } else {
-            /* المستند لم يُنشأ بعد: نرفع بياناتنا المحلية */
-            window.setTimeout(() => {
-              if (!writingRef.current && !migrationPendingRef.current && !localChangeRef.current)
-                pushToCloud(dbLatestRef.current);
-            }, 1200);
+            // نرجع الـ flag بعد ما React يخلص الـ render
+            Promise.resolve().then(() => {
+              fromFirestoreRef.current = false;
+            });
           }
           setSync((s) =>
             s.mode === "error"
@@ -252,46 +199,39 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           );
         },
         (e) => {
-          window.clearTimeout(timeoutId);
           setSync({ mode: "error", projectId: cfg.projectId, error: fbMessage(e) });
         }
       );
-
-      /* أول فتح بعد التحديث: دفع الحالة الفارغة لمسح أي محتوى تجريبي قديم من السحابة */
-      if (migrationPendingRef.current) {
-        window.setTimeout(() => pushToCloud(dbLatestRef.current), 1000);
-      }
     })();
   };
 
-  /* الحفظ المحلي + الرفع للسحابة عند أي تغيير */
-  useEffect(() => {
+  /* رفع البيانات للسحابة عند أي تغيير */
+  useLayoutEffect(() => {
     dbLatestRef.current = db;
-    try {
-      localStorage.setItem(KEY, JSON.stringify(db));
-    } catch {
-      /* المساحة ممتلئة */
-    }
     if (syncRef.current.mode !== "cloud") return;
     
-    // نرفع flag يقول إن في تغيير محلي بيحصل
+    // لو التغيير جاي من Firestore، مش نرفعه تاني
+    if (fromFirestoreRef.current) return;
+    
+    // نقارن الـ db الحالي بالـ db اللي ات رفع آخر مرة
+    // لو كانوا نفس الشيء، مش نرفع البيانات تاني
+    const lastUploaded = lastUploadedDbRef.current;
+    if (
+      JSON.stringify(db.fields) === JSON.stringify(lastUploaded.fields) &&
+      JSON.stringify(db.projects) === JSON.stringify(lastUploaded.projects) &&
+      JSON.stringify(db.articles) === JSON.stringify(lastUploaded.articles)
+    ) {
+      return; // البيانات متشابهة، مش نرفعها تاني
+    }
+    
     localChangeRef.current = true;
-    
-    const t = window.setTimeout(() => {
-      pushToCloud(db).finally(() => {
-        // ننزل flag بعد ما pushToCloud يخلص
-        localChangeRef.current = false;
-      });
-    }, 900);
-    
-    return () => {
-      window.clearTimeout(t);
+    pushToCloud(db).finally(() => {
       localChangeRef.current = false;
-    };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db]);
 
-  /* عند الفتح: الاتصال التلقائي بمشروع دوبلكس ما لم يُعطَّل يدويًا */
+  /* عند الفتح: الاتصال التلقائي بمشروع دوبلكس */
   useEffect(() => {
     if (!isAutoConnectDisabled()) activate(getEffectiveConfig());
     return () => unsubRef.current?.();
@@ -315,8 +255,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       unsubRef.current = null;
       clearStoredConfig();
       setAutoConnectDisabled(true);
-      setSync({ mode: "local" });
-      toast("تم التبديل إلى التخزين المحلي", "info");
+      setSync({ mode: "error", error: "الاتصال معطّل — فعّله من إعدادات فايربيز" });
+      toast("تم تعطيل الاتصال بفايربيز", "info");
     },
     addField: (f) =>
       setDb((d) => ({
@@ -378,9 +318,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           if (a.id !== id) return a;
           const next: Article = { ...a, ...patch };
           if (patch.body !== undefined) next.readMins = readMins(next.body);
-          /* أي تعديل في الكلمات المفتاحية يعيد توليد الوسوم تلقائيًا */
           if (patch.keywords !== undefined) next.tags = toTags(next.keywords);
-          /* تاريخ النشر: يُسجَّل عند أول نشر ويحتفظ بقيمته بعدها */
           if (patch.published !== undefined) {
             next.publishedAt = patch.published
               ? (a.publishedAt ?? Date.now())
