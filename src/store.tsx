@@ -183,6 +183,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         // لو في وضع المسح، نتجاهل أي تغييرات
         if (resettingRef.current) return;
         if (localChangeRef.current) return;
+        
         if (snap.exists()) {
           const data = snap.data() as Db;
           const ts = data.updatedAt ?? 0;
@@ -208,7 +209,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           Promise.resolve().then(() => {
             fromFirestoreRef.current = false;
           });
+        } else {
+          // لو المستند مش موجود، ننشئه ببيانات فاضية
+          const emptyDb: Db = { fields: [], projects: [], articles: [] };
+          setDb(emptyDb);
+          lastUploadedDbRef.current = emptyDb;
         }
+        
         setSync((s) =>
           s.mode === "error"
             ? s
@@ -307,7 +314,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         // إعادة تشغيل الـ listener
         const cfg = getEffectiveConfig();
         if (cfg && !isAutoConnectDisabled()) {
-          activate(cfg);
+          await activate(cfg);
         }
         
         // إيقاف flag المسح بعد ما الـ listener الجديد يشتغل
@@ -339,6 +346,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           writingRef.current = true;
           await setDoc(ref, { ...emptyDb, updatedAt: Date.now() });
           writingRef.current = false;
+          
+          // محاولة مسح المستندات الأخرى في collection dashboards
+          try {
+            const { getFirestore, collection, getDocs, deleteDoc } = await import("firebase/firestore");
+            const app = (await import("firebase/app")).getApps()[0];
+            if (app) {
+              const fs = getFirestore(app);
+              const dashboardsCol = collection(fs, "dashboards");
+              const snapshot = await getDocs(dashboardsCol);
+              const deletePromises = snapshot.docs
+                .filter(doc => doc.id !== "dublex-main") // نحافظ على dublex-main
+                .map(doc => deleteDoc(doc.ref));
+              await Promise.all(deletePromises);
+            }
+          } catch (e) {
+            console.warn("Failed to delete other documents:", e);
+          }
         }
         
         // مسح الـ state المحلي
@@ -352,7 +376,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         // إعادة تشغيل الـ listener لو كان متصل
         const cfg = getEffectiveConfig();
         if (cfg && !isAutoConnectDisabled() && syncRef.current.mode === "cloud") {
-          activate(cfg);
+          await activate(cfg);
         }
         
         // إيقاف flag المسح
