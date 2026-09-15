@@ -106,6 +106,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const unsubRef = useRef<(() => void) | null>(null);
   const localChangeRef = useRef(false);
   const fromFirestoreRef = useRef(false); // flag يقول إن التغيير جاي من Firestore
+  const lastUploadedDbRef = useRef(db); // نخزن الـ db اللي ات رفع آخر مرة
 
   useEffect(() => {
     syncRef.current = sync;
@@ -130,6 +131,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const ts = Date.now();
     writingRef.current = true;
     remoteTsRef.current = ts;
+    lastUploadedDbRef.current = data; // نخزن الـ db اللي ات رفع
     return setDoc(ref, { ...data, updatedAt: ts })
       .then(() => {
         writingRef.current = false;
@@ -210,6 +212,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     
     // لو التغيير جاي من Firestore، مش نرفعه تاني
     if (fromFirestoreRef.current) return;
+    
+    // نقارن الـ db الحالي بالـ db اللي ات رفع آخر مرة
+    // لو كانوا نفس الشيء، مش نرفع البيانات تاني
+    const lastUploaded = lastUploadedDbRef.current;
+    if (
+      JSON.stringify(db.fields) === JSON.stringify(lastUploaded.fields) &&
+      JSON.stringify(db.projects) === JSON.stringify(lastUploaded.projects) &&
+      JSON.stringify(db.articles) === JSON.stringify(lastUploaded.articles)
+    ) {
+      return; // البيانات متشابهة، مش نرفعها تاني
+    }
     
     localChangeRef.current = true;
     pushToCloud(db).finally(() => {
