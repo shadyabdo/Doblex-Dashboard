@@ -65,6 +65,7 @@ interface StoreApi {
   dismissToast: (id: string) => void;
   connectFirebase: (cfg: FirebaseConfig) => void;
   disconnectFirebase: () => void;
+  resetAllData: () => Promise<void>;
   addField: (f: Omit<Field, "id" | "createdAt">) => void;
   updateField: (id: string, patch: Partial<Field>) => void;
   deleteField: (id: string) => void;
@@ -107,6 +108,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const localChangeRef = useRef(false);
   const fromFirestoreRef = useRef(false); // flag يقول إن التغيير جاي من Firestore
   const lastUploadedDbRef = useRef(db); // نخزن الـ db اللي ات رفع آخر مرة
+  const resettingRef = useRef(false); // flag يقول إننا في وضع المسح
 
   useEffect(() => {
     syncRef.current = sync;
@@ -169,6 +171,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       unsubRef.current = onSnapshot(
         ref,
         (snap) => {
+          // لو في وضع المسح، نتجاهل أي تغييرات
+          if (resettingRef.current) return;
           if (localChangeRef.current) return;
           if (snap.exists()) {
             const data = snap.data() as Db;
@@ -184,9 +188,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
               articles: Array.isArray(data.articles) ? data.articles : [],
             };
             
+            const normalizedData = normalizeDb(mergedDb);
+            
             // نعمل flag يقول إن التغيير جاي من Firestore
             fromFirestoreRef.current = true;
-            setDb(normalizeDb(mergedDb));
+            // نخزن البيانات normalized عشان المقارنة تشتغل صح
+            lastUploadedDbRef.current = normalizedData;
+            setDb(normalizedData);
             // نرجع الـ flag بعد ما React يخلص الـ render
             Promise.resolve().then(() => {
               fromFirestoreRef.current = false;
@@ -257,6 +265,50 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setAutoConnectDisabled(true);
       setSync({ mode: "error", error: "الاتصال معطّل — فعّله من إعدادات فايربيز" });
       toast("تم تعطيل الاتصال بفايربيز", "info");
+    },
+    resetAllData: async () => {
+      const ref = dbRef();
+      if (!ref) {
+        toast("لا يمكن إعادة التعيين - Firestore غير متصل", "error");
+        return;
+      }
+
+      try {
+        // تشغيل flag المسح
+        resettingRef.current = true;
+        
+        // إيقاف الـ listener مؤقتًا
+        unsubRef.current?.();
+        unsubRef.current = null;
+        
+        // مسح كل البيانات من Firestore
+        const emptyDb: Db = { fields: [], projects: [], articles: [] };
+        writingRef.current = true;
+        await setDoc(ref, { ...emptyDb, updatedAt: Date.now() });
+        writingRef.current = false;
+        
+        // مسح الـ state المحلي
+        setDb(emptyDb);
+        lastUploadedDbRef.current = emptyDb;
+        
+        // استنى شوية عشان الـ listener ما يسمعش التغييرات القديمة
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // إعادة تشغيل الـ listener
+        const cfg = getEffectiveConfig();
+        if (cfg && !isAutoConnectDisabled()) {
+          activate(cfg);
+        }
+        
+        // إيقاف flag المسح بعد ما الـ listener الجديد يشتغل
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        resettingRef.current = false;
+        
+        toast("تم مسح كل البيانات بنجاح", "success");
+      } catch (e) {
+        resettingRef.current = false;
+        toast("فشل في مسح البيانات: " + fbMessage(e), "error");
+      }
     },
     addField: (f) =>
       setDb((d) => ({
