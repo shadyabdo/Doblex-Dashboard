@@ -65,6 +65,7 @@ interface StoreApi {
   dismissToast: (id: string) => void;
   connectFirebase: (cfg: FirebaseConfig) => void;
   disconnectFirebase: () => void;
+  resetAllData: () => Promise<void>;
   addField: (f: Omit<Field, "id" | "createdAt">) => void;
   updateField: (id: string, patch: Partial<Field>) => void;
   deleteField: (id: string) => void;
@@ -261,6 +262,39 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setAutoConnectDisabled(true);
       setSync({ mode: "error", error: "الاتصال معطّل — فعّله من إعدادات فايربيز" });
       toast("تم تعطيل الاتصال بفايربيز", "info");
+    },
+    resetAllData: async () => {
+      const ref = dbRef();
+      if (!ref) {
+        toast("لا يمكن إعادة التعيين - Firestore غير متصل", "error");
+        return;
+      }
+
+      try {
+        // إيقاف الـ listener مؤقتًا
+        unsubRef.current?.();
+        unsubRef.current = null;
+        
+        // مسح كل البيانات من Firestore
+        const emptyDb: Db = { fields: [], projects: [], articles: [] };
+        writingRef.current = true;
+        await setDoc(ref, { ...emptyDb, updatedAt: Date.now() });
+        writingRef.current = false;
+        
+        // مسح الـ state المحلي
+        setDb(emptyDb);
+        lastUploadedDbRef.current = emptyDb;
+        
+        // إعادة تشغيل الـ listener
+        const cfg = getEffectiveConfig();
+        if (cfg && !isAutoConnectDisabled()) {
+          activate(cfg);
+        }
+        
+        toast("تم مسح كل البيانات بنجاح", "success");
+      } catch (e) {
+        toast("فشل في مسح البيانات: " + fbMessage(e), "error");
+      }
     },
     addField: (f) =>
       setDb((d) => ({

@@ -179,7 +179,7 @@ function CloudModal({
   onClose: () => void;
   initialTab?: CloudTab;
 }) {
-  const { sync, connectFirebase, disconnectFirebase, toast } = useStore();
+  const { sync, connectFirebase, disconnectFirebase, resetAllData, toast } = useStore();
   const [raw, setRaw] = useState(() => {
     const c = loadStoredConfig();
     return JSON.stringify(c ?? DEFAULT_CONFIG, null, 2);
@@ -618,6 +618,45 @@ function CloudModal({
             </button>
           ) : null}
         </div>
+
+        {/* زر مسح كل البيانات */}
+        {(sync.mode === "cloud" || sync.mode === "connecting") && (
+          <div className="mt-6 rounded-xl border-2 border-coral/30 bg-coral-soft/20 p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-coral text-card">
+                <I n="alert" className="h-5 w-5" />
+              </span>
+              <div className="flex-1">
+                <p className="font-display text-[13px] font-extrabold text-coral">
+                  منطقة الخطر: مسح كل البيانات
+                </p>
+                <p className="mt-1 text-[11px] font-semibold leading-5 text-ink-600">
+                  هذا الزر سيمسح كل المحتوى (المجالات، المشاريع، المقالات) من Firestore نهائيًا.
+                  لا يمكن التراجع عن هذه العملية.
+                </p>
+                <button
+                  onClick={async () => {
+                    const confirmed = window.confirm(
+                      "⚠️ تحذير: هل أنت متأكد من مسح كل البيانات؟\n\nسيتم حذف:\n- كل المجالات\n- كل المشاريع\n- كل المقالات\n\nلا يمكن التراجع عن هذه العملية!"
+                    );
+                    if (confirmed) {
+                      const doubleConfirmed = window.confirm(
+                        "⚠️ تأكيد نهائي: هل أنت متأكد تمامًا؟\n\nسيتم مسح كل البيانات من Firestore نهائيًا!"
+                      );
+                      if (doubleConfirmed) {
+                        await resetAllData();
+                      }
+                    }
+                  }}
+                  className="btn-press mt-3 flex items-center gap-2 rounded-xl bg-coral px-5 py-2.5 font-display text-[12px] font-extrabold text-card hover:brightness-110"
+                >
+                  <I n="trash" className="h-4 w-4" />
+                  مسح كل البيانات نهائيًا
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* التبويبات */}
         <div className="mt-6 border-t border-dashed border-line pt-5">
