@@ -229,12 +229,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
             
             remoteTsRef.current = ts;
             
-            // Merge logic: لو البيانات من Firestore ناقصة، نستخدم البيانات المحلية
-            const localDb = dbLatestRef.current;
+            // نستخدم البيانات من Firestore كما هي (حتى لو فاضية)
+            // لو في array ناقص، نستخدم array فاضي بدل البيانات المحلية
             const mergedDb = {
-              fields: data.fields && data.fields.length > 0 ? data.fields : localDb.fields,
-              projects: data.projects && data.projects.length > 0 ? data.projects : localDb.projects,
-              articles: data.articles && data.articles.length > 0 ? data.articles : localDb.articles,
+              fields: Array.isArray(data.fields) ? data.fields : [],
+              projects: Array.isArray(data.projects) ? data.projects : [],
+              articles: Array.isArray(data.articles) ? data.articles : [],
             };
             
             setDb(normalizeDb(mergedDb));
@@ -277,17 +277,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     // نرفع flag يقول إن في تغيير محلي بيحصل
     localChangeRef.current = true;
     
-    const t = window.setTimeout(() => {
-      pushToCloud(db).finally(() => {
-        // ننزل flag بعد ما pushToCloud يخلص
-        localChangeRef.current = false;
-      });
-    }, 900);
-    
-    return () => {
-      window.clearTimeout(t);
+    // نرفع البيانات فورًا بدون delay عشان الحذف يشتغل صح
+    pushToCloud(db).finally(() => {
+      // ننزل flag بعد ما pushToCloud يخلص
       localChangeRef.current = false;
-    };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [db]);
 
