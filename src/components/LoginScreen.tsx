@@ -16,6 +16,7 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [attempts, setAttempts] = useState(0);
   const [lockUntil, setLockUntil] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [showPassword, setShowPassword] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // تحميل البيانات من localStorage
@@ -29,7 +30,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
       if (Date.now() < lockTime) {
         setLockUntil(lockTime);
       } else {
-        // الوقت انتهى، نعمل reset
         localStorage.removeItem(STORAGE_KEYS.attempts);
         localStorage.removeItem(STORAGE_KEYS.lockUntil);
       }
@@ -57,7 +57,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     return () => clearInterval(timer);
   }, [lockUntil]);
 
-  // Focus على input عند التحميل
   useEffect(() => {
     inputRef.current?.focus();
   }, [lockUntil]);
@@ -83,7 +82,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
     }
 
     if (password === CORRECT_PASSWORD) {
-      // كلمة السر صحيحة
       await Swal.fire({
         icon: "success",
         title: "مرحباً بك!",
@@ -99,24 +97,17 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
         `,
         confirmButtonColor: "#0E6E55",
         confirmButtonText: "دخول",
-        showClass: {
-          popup: "animate__animated animate__fadeInUp",
-        },
       });
 
-      // مسح المحاولات
       localStorage.removeItem(STORAGE_KEYS.attempts);
       localStorage.removeItem(STORAGE_KEYS.lockUntil);
-
       onLogin();
     } else {
-      // كلمة السر خاطئة
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       localStorage.setItem(STORAGE_KEYS.attempts, newAttempts.toString());
 
       if (newAttempts >= MAX_ATTEMPTS) {
-        // قفل الحساب
         const lockTime = Date.now() + LOCK_DURATION;
         setLockUntil(lockTime);
         localStorage.setItem(STORAGE_KEYS.lockUntil, lockTime.toString());
@@ -138,7 +129,6 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
           confirmButtonText: "حسناً",
         });
       } else {
-        // محاولة خاطئة
         const remaining = MAX_ATTEMPTS - newAttempts;
         await Swal.fire({
           icon: "error",
@@ -166,79 +156,142 @@ export default function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const isLocked = lockUntil !== null && timeLeft > 0;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-paper p-4">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-block mb-4">
-            <div className="w-20 h-20 mx-auto bg-card rounded-2xl shadow-lg flex items-center justify-center border border-line">
-              <I n="lock" className="h-10 w-10 text-brand" />
-            </div>
-          </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-ink-900 mb-2">
-            دوبلكس
-          </h1>
-          <p className="text-sm text-ink-500">لوحة تحكم الفريق</p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      {/* خلفية متدرجة */}
+      <div className="absolute inset-0 bg-gradient-to-br from-ink-900 via-ink-800 to-ink-950" />
+      
+      {/* شبكة زخرفية */}
+      <div 
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: `
+            linear-gradient(rgba(225,155,16,0.15) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(225,155,16,0.15) 1px, transparent 1px)
+          `,
+          backgroundSize: "50px 50px",
+        }}
+      />
 
-        {/* Login Form */}
-        <div className="bg-card rounded-2xl shadow-xl border border-line p-6 sm:p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="lbl" htmlFor="password">
-                كلمة السر
-              </label>
-              <input
-                ref={inputRef}
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLocked}
-                placeholder="أدخل كلمة السر"
-                className="inp text-center text-lg tracking-wider"
-                autoComplete="current-password"
+      {/* دوائر زخرفية */}
+      <div className="absolute top-20 -right-20 w-96 h-96 bg-brand/10 rounded-full blur-3xl" />
+      <div className="absolute -bottom-20 -left-20 w-96 h-96 bg-gold/10 rounded-full blur-3xl" />
+
+      <div className="relative z-10 w-full max-w-md mx-4">
+        {/* بطاقة تسجيل الدخول */}
+        <div className="bg-card/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-line/50 overflow-hidden">
+          {/* Header */}
+          <div className="relative bg-gradient-to-br from-ink-900 to-ink-800 px-8 py-10 text-center overflow-hidden">
+            <div className="absolute inset-0 opacity-20">
+              <div 
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `
+                    radial-gradient(circle at 20% 50%, rgba(225,155,16,0.3) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 50%, rgba(14,110,85,0.3) 0%, transparent 50%)
+                  `,
+                }}
               />
             </div>
-
-            {isLocked && (
-              <div className="rounded-xl border-2 border-coral/40 bg-coral-soft/30 p-4 text-center">
-                <p className="text-sm font-bold text-coral mb-2">
-                  الحساب مقفل مؤقتاً
-                </p>
-                <p className="font-mono text-2xl font-extrabold text-coral">
-                  {formatTime(timeLeft)}
-                </p>
-                <p className="text-xs text-ink-500 mt-2">
-                  يرجى الانتظار قبل المحاولة مرة أخرى
-                </p>
+            
+            <div className="relative">
+              {/* أيقونة القفل */}
+              <div className="inline-flex items-center justify-center w-20 h-20 mb-4 rounded-2xl bg-gradient-to-br from-brand to-brand-deep shadow-xl shadow-brand/30">
+                <I n="lock" className="h-10 w-10 text-card" />
               </div>
-            )}
+              
+              <h1 className="font-display text-3xl font-extrabold text-card mb-2">
+                دوبلكس
+              </h1>
+              <p className="text-sm text-ink-300 font-medium">
+                لوحة تحكم الفريق التكنولوجي
+              </p>
+            </div>
+          </div>
 
-            {!isLocked && attempts > 0 && (
-              <div className="rounded-xl border border-gold/40 bg-gold-soft/30 p-3 text-center">
-                <p className="text-xs font-semibold text-gold-deep">
-                  المحاولات المتبقية: {MAX_ATTEMPTS - attempts}
-                </p>
+          {/* Form */}
+          <div className="p-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
+                <label className="lbl flex items-center gap-2 mb-3" htmlFor="password">
+                  <I n="lock" className="h-4 w-4 text-brand" />
+                  كلمة السر
+                </label>
+                <div className="relative">
+                  <input
+                    ref={inputRef}
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLocked}
+                    placeholder="أدخل كلمة السر"
+                    className="inp !pr-12 text-center text-lg tracking-wider font-mono"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute end-3 top-1/2 -translate-y-1/2 p-2 text-ink-400 hover:text-brand transition-colors"
+                  >
+                    <I n={showPassword ? "eye" : "eye"} className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={isLocked || !password.trim()}
-              className="btn-press w-full flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 font-display text-sm font-extrabold text-card transition-colors hover:bg-brand-deep disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <I n="check" className="h-5 w-5" />
-              دخول
-            </button>
-          </form>
+              {isLocked && (
+                <div className="rounded-2xl border-2 border-coral/40 bg-gradient-to-br from-coral-soft/50 to-coral-soft/30 p-5 text-center">
+                  <div className="inline-flex items-center justify-center w-12 h-12 mb-3 rounded-full bg-coral/20">
+                    <I n="alert" className="h-6 w-6 text-coral" />
+                  </div>
+                  <p className="text-sm font-bold text-coral mb-2">
+                    الحساب مقفل مؤقتاً
+                  </p>
+                  <p className="font-mono text-3xl font-extrabold text-coral mb-2">
+                    {formatTime(timeLeft)}
+                  </p>
+                  <p className="text-xs text-ink-500">
+                    يرجى الانتظار قبل المحاولة مرة أخرى
+                  </p>
+                </div>
+              )}
 
-          <div className="mt-6 pt-6 border-t border-line text-center">
-            <p className="text-xs text-ink-400">
-              © 2025 Dublex Team. جميع الحقوق محفوظة.
-            </p>
+              {!isLocked && attempts > 0 && (
+                <div className="rounded-2xl border border-gold/40 bg-gradient-to-br from-gold-soft/50 to-gold-soft/30 p-4 text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <I n="alert" className="h-4 w-4 text-gold-deep" />
+                    <p className="text-sm font-bold text-gold-deep">
+                      تحذير أمني
+                    </p>
+                  </div>
+                  <p className="text-xs text-ink-600">
+                    المحاولات المتبقية: <strong className="text-gold-deep">{MAX_ATTEMPTS - attempts}</strong>
+                  </p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLocked || !password.trim()}
+                className="btn-press w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-brand to-brand-deep px-6 py-4 font-display text-base font-extrabold text-card shadow-lg shadow-brand/30 transition-all hover:shadow-xl hover:shadow-brand/40 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              >
+                <I n="check" className="h-5 w-5" />
+                دخول
+              </button>
+            </form>
+
+            {/* Footer */}
+            <div className="mt-8 pt-6 border-t border-line/50 text-center">
+              <p className="text-xs text-ink-400 font-medium">
+                © 2025 Dublex Team. جميع الحقوق محفوظة.
+              </p>
+            </div>
           </div>
         </div>
+
+        {/* نص أسفل البطاقة */}
+        <p className="text-center mt-6 text-xs text-ink-400/60">
+          نظام آمن ومحمي بكلمة سر
+        </p>
       </div>
     </div>
   );
