@@ -32,7 +32,7 @@ function Tile({
   );
 }
 
-export default function Overview({ go, onCloud }: { go: (v: View) => void; onCloud: () => void }) {
+export default function Overview({ go }: { go: (v: View) => void; onCloud?: () => void }) {
   const { db, sync, clearAllData, exportData, importData } = useStore();
 
   const totalGoals = db.projects.reduce((s, p) => s + p.goals.length, 0);
@@ -477,7 +477,7 @@ export default function Overview({ go, onCloud }: { go: (v: View) => void; onClo
             )}
           </div>
           <button
-            onClick={onCloud}
+            onClick={() => go({ name: "cloud-settings" })}
             className="btn-press mt-3 sm:mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-ink-900 px-4 py-2.5 font-display text-[12px] sm:text-[13px] font-bold text-card transition-colors hover:bg-ink-700"
           >
             <I n="cloud" className="h-4 w-4" />

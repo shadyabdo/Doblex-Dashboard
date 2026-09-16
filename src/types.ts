@@ -4,8 +4,11 @@ export type ViewName =
   | "field-detail"
   | "projects"
   | "project-form"
+  | "project-detail"
   | "articles"
-  | "article-form";
+  | "article-form"
+  | "article-detail"
+  | "cloud-settings";
 
 export interface View {
   name: ViewName;

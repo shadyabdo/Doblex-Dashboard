@@ -44,7 +44,6 @@ export default function Projects({ go }: { go: (v: View) => void }) {
   const [fieldFilter, setFieldFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<"all" | ProjectStatus>("all");
   const [videoOnly, setVideoOnly] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [delTarget, setDelTarget] = useState<Project | null>(null);
 
   const filtered = useMemo(() => {
@@ -62,7 +61,7 @@ export default function Projects({ go }: { go: (v: View) => void }) {
     });
   }, [db.projects, q, fieldFilter, statusFilter, videoOnly]);
 
-  const selected = selectedId ? db.projects.find((p) => p.id === selectedId) : undefined;
+
   const fieldOf = (p: Project) => db.fields.find((f) => f.id === p.fieldId);
 
   return (
@@ -180,7 +179,7 @@ export default function Projects({ go }: { go: (v: View) => void }) {
             return (
               <Reveal key={p.id} delay={(i % 3) * 90}>
                 <button
-                  onClick={() => setSelectedId(p.id)}
+                  onClick={() => go({ name: "project-detail", projectId: p.id })}
                   className="group relative w-full overflow-hidden rounded-xl border border-line bg-card text-start shadow-[0_1px_0_rgba(11,36,28,0.04)] transition-all duration-300 hover:-translate-y-1.5 hover:border-brand/40 hover:shadow-[0_24px_50px_-22px_rgba(11,36,28,0.35)]"
                 >
                   <div className="relative h-44 overflow-hidden">
@@ -260,266 +259,6 @@ export default function Projects({ go }: { go: (v: View) => void }) {
         </div>
       )}
 
-      {/* نافذة التفاصيل */}
-      <Modal open={!!selected} onClose={() => setSelectedId(null)} wide>
-        {selected && (
-          <div>
-            <div className="relative h-52 overflow-hidden sm:h-64">
-              <Cover p={selected} className="h-full w-full" />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-ink-950/20 to-transparent" />
-              <button
-                onClick={() => setSelectedId(null)}
-                className="btn-press absolute top-4 end-4 flex h-9 w-9 items-center justify-center rounded-xl bg-ink-950/60 text-card backdrop-blur-sm hover:bg-coral"
-                aria-label="إغلاق"
-              >
-                <I n="x" className="h-4.5 w-4.5" />
-              </button>
-              <div className="absolute bottom-4 inset-x-5 flex flex-wrap items-end justify-between gap-3">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <StatusPill s={selected.status} />
-                    <span className="rounded-full bg-card/15 px-2.5 py-1 text-[10px] font-bold text-card backdrop-blur-sm">
-                      {selected.fieldLabel}
-                    </span>
-                  </div>
-                  <h2 className="mt-2.5 font-display text-2xl font-extrabold text-card sm:text-3xl">
-                    {selected.title}
-                  </h2>
-                  {selected.subtitle && <p className="mt-1 text-[13px] font-medium text-ink-200">{selected.subtitle}</p>}
-                </div>
-              </div>
-            </div>
-
-            <div className="p-5 sm:p-7">
-              {/* بيانات سريعة */}
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {[
-                  { l: "العميل", v: selected.client || "—" },
-                  { l: "السنة", v: selected.year || "—" },
-                  { l: "المجال", v: selected.fieldLabel },
-                  { l: "أُضيف في", v: formatDate(selected.createdAt) },
-                ].map((m) => (
-                  <div key={m.l} className="rounded-xl border border-dashed border-line bg-card px-3.5 py-3">
-                    <p className="font-mono text-[10px] font-semibold tracking-widest text-ink-300">{m.l}</p>
-                    <p className="mt-1 truncate font-display text-[13px] font-bold text-ink-800" title={m.v}>{m.v}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* فيديو المشروع */}
-              {selected.videoUrl && (
-                <div className="mt-6">
-                  <div className="flex items-center justify-between">
-                    <h4 className="flex items-center gap-2 font-display text-sm font-extrabold text-ink-900">
-                      <I n="play" className="h-4 w-4 text-coral" />
-                      فيديو المشروع
-                    </h4>
-                    <a
-                      href={selected.videoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="btn-press flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-[11px] font-bold text-ink-500 transition-colors hover:border-coral hover:text-coral"
-                    >
-                      <I n="link" className="h-3.5 w-3.5" />
-                      فتح في المنصة ↗
-                    </a>
-                  </div>
-                  <div className="pop relative mt-3 aspect-video overflow-hidden rounded-xl border border-line bg-ink-950 shadow-[0_20px_44px_-20px_rgba(11,36,28,0.45)]">
-                    <iframe
-                      src={selected.videoUrl}
-                      title={`فيديو ${selected.title}`}
-                      className="h-full w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                      referrerPolicy="strict-origin-when-cross-origin"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* الوصف والتفاصيل */}
-              <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                <div>
-                  <h4 className="flex items-center gap-2 font-display text-sm font-extrabold text-ink-900">
-                    <I n="doc" className="h-4 w-4 text-brand" />
-                    وصف المشروع
-                  </h4>
-                  <p className="mt-2.5 text-sm leading-8 text-ink-600">
-                    {selected.description || "لم يُكتب وصف بعد."}
-                  </p>
-                </div>
-                <div>
-                  <h4 className="flex items-center gap-2 font-display text-sm font-extrabold text-ink-900">
-                    <I n="sliders" className="h-4 w-4 text-sea" />
-                    تفاصيل التنفيذ
-                  </h4>
-                  <p className="mt-2.5 text-sm leading-8 text-ink-600">
-                    {selected.details || "لا توجد تفاصيل إضافية."}
-                  </p>
-                </div>
-              </div>
-
-              {/* الأهداف */}
-              <div className="mt-7">
-                <div className="flex items-center justify-between">
-                  <h4 className="flex items-center gap-2 font-display text-sm font-extrabold text-ink-900">
-                    <I n="target" className="h-4 w-4 text-brand" />
-                    الأهداف
-                  </h4>
-                  <span className="rounded-full bg-brand-soft px-2.5 py-0.5 font-mono text-[11px] font-bold text-brand-deep">
-                    {selected.goals.filter((g) => g.done).length}/{selected.goals.length} محقق
-                  </span>
-                </div>
-                <p className="mt-1 text-[11px] text-ink-400">اضغط على أي هدف لتبديل حالته — يُحفظ فورًا.</p>
-                <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-                  {selected.goals.map((g) => (
-                    <li key={g.id}>
-                      <button
-                        onClick={() => toggleGoal(selected.id, g.id)}
-                        className={`btn-press flex w-full items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-start transition-all duration-200 ${
-                          g.done
-                            ? "border-brand/40 bg-brand-soft/45"
-                            : "border-line bg-card hover:border-ink-300"
-                        }`}
-                      >
-                        <span
-                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-colors ${
-                            g.done ? "border-brand bg-brand text-card" : "border-ink-200 text-transparent"
-                          }`}
-                        >
-                          <I n="check" className="h-3 w-3" />
-                        </span>
-                        <span className={`text-[13px] font-semibold ${g.done ? "text-brand-deep" : "text-ink-600"}`}>
-                          {g.text}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                  {selected.goals.length === 0 && (
-                    <li className="text-[13px] text-ink-400">لا توجد أهداف مسجلة.</li>
-                  )}
-                </ul>
-              </div>
-
-              {/* الإنجازات */}
-              <div className="mt-7">
-                <h4 className="flex items-center gap-2 font-display text-sm font-extrabold text-ink-900">
-                  <I n="trophy" className="h-4 w-4 text-gold-deep" />
-                  الإنجازات المحققة
-                </h4>
-                <ul className="mt-3 space-y-2">
-                  {selected.achievements.map((a) => (
-                    <li key={a.id} className="flex items-center gap-3 rounded-xl border border-gold/25 bg-gold-soft/35 px-4 py-3">
-                      <span className="shrink-0 rounded-lg bg-card px-2.5 py-1 font-mono text-sm font-bold text-gold-deep shadow-sm">
-                        {a.metric}
-                      </span>
-                      <span className="text-[13px] font-semibold text-ink-700">{a.text}</span>
-                    </li>
-                  ))}
-                  {selected.achievements.length === 0 && (
-                    <li className="text-[13px] text-ink-400">لم تُوثّق إنجازات بعد — أضفها من تعديل المشروع.</li>
-                  )}
-                </ul>
-              </div>
-
-              {/* الروابط والملحقات */}
-              {selected.links && selected.links.length > 0 && (
-                <div className="mt-7">
-                  <h4 className="flex items-center gap-2 font-display text-sm font-extrabold text-ink-900">
-                    <I n="link" className="h-4 w-4 text-gold-deep" />
-                    الروابط والملحقات ({selected.links.length})
-                  </h4>
-                  <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
-                    {selected.links.map((l) => {
-                      const iconMap: Record<ProjectLink["type"], IconName> = {
-                        demo: "demo",
-                        github: "github",
-                        figma: "figma",
-                        other: "link",
-                      };
-                      const colorMap: Record<ProjectLink["type"], { bg: string; fg: string }> = {
-                        demo: { bg: "bg-brand-soft", fg: "text-brand" },
-                        github: { bg: "bg-ink-50", fg: "text-ink-700" },
-                        figma: { bg: "bg-coral-soft", fg: "text-coral" },
-                        other: { bg: "bg-gold-soft", fg: "text-gold-deep" },
-                      };
-                      const c = colorMap[l.type];
-                      return (
-                        <a
-                          key={l.id}
-                          href={l.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn-press group flex items-center gap-3 rounded-xl border border-line bg-card px-4 py-3 text-start transition-all duration-200 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
-                        >
-                          <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${c.bg} ${c.fg}`}>
-                            <I n={iconMap[l.type]} className="h-5 w-5" />
-                          </span>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-display text-[13px] font-bold text-ink-800 transition-colors group-hover:text-brand">
-                              {l.label}
-                            </p>
-                            <p dir="ltr" className="truncate text-[11px] text-ink-400">{l.url}</p>
-                          </div>
-                          <I n="arrow" className="h-4 w-4 shrink-0 text-ink-300 transition-all duration-300 group-hover:-translate-x-1 group-hover:text-brand" />
-                        </a>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* المعرض */}
-              {selected.images.length > 0 && (
-                <div className="mt-7">
-                  <h4 className="flex items-center gap-2 font-display text-sm font-extrabold text-ink-900">
-                    <I n="image" className="h-4 w-4 text-sea" />
-                    معرض الصور ({selected.images.length})
-                  </h4>
-                  <div className="mt-3 grid grid-cols-3 gap-2.5 sm:grid-cols-4">
-                    {selected.images.map((im) => (
-                      <a
-                        key={im.id}
-                        href={im.src}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group relative aspect-square overflow-hidden rounded-xl border border-line"
-                      >
-                        <img src={im.src} alt="" className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* الإجراءات */}
-              <div className="mt-8 flex flex-wrap gap-3 border-t border-line pt-5">
-                <button
-                  onClick={() => go({ name: "project-form", projectId: selected.id })}
-                  className="btn-press flex items-center gap-2 rounded-xl bg-ink-900 px-5 py-2.5 font-display text-[13px] font-bold text-card hover:bg-ink-700"
-                >
-                  <I n="edit" className="h-4 w-4" />
-                  تعديل المشروع
-                </button>
-                <button
-                  onClick={() => setDelTarget(selected)}
-                  className="btn-press flex items-center gap-2 rounded-xl border border-coral/40 px-5 py-2.5 text-[13px] font-bold text-coral hover:bg-coral-soft"
-                >
-                  <I n="trash" className="h-4 w-4" />
-                  حذف
-                </button>
-                <button
-                  onClick={() => setSelectedId(null)}
-                  className="btn-press ms-auto rounded-xl border border-ink-200 px-5 py-2.5 text-[13px] font-semibold text-ink-500 hover:bg-ink-50"
-                >
-                  إغلاق
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
-
       <Confirm
         open={!!delTarget}
         title={`حذف مشروع «${delTarget?.title ?? ""}»؟`}
@@ -528,7 +267,6 @@ export default function Projects({ go }: { go: (v: View) => void }) {
         onConfirm={() => {
           if (delTarget) {
             deleteProject(delTarget.id);
-            setSelectedId(null);
             toast("تم حذف المشروع", "info");
           }
           setDelTarget(null);
