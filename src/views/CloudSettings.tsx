@@ -377,9 +377,55 @@ export default function CloudSettings({ go }: { go: (v: View) => void }) {
         </div>
       </Reveal>
 
+      {/* Import/Export Data */}
+      <Reveal delay={400}>
+        <div className="rounded-xl border border-line bg-card p-6">
+          <div className="flex items-start gap-3 mb-4">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+              <I n="cloud" className="h-5 w-5" />
+            </span>
+            <div className="flex-1">
+              <p className="font-display text-sm font-extrabold text-ink-800">
+                استيراد وتصدير البيانات
+              </p>
+              <p className="mt-1 text-xs font-semibold text-ink-600">
+                صدّر بياناتك كملف JSON أو استورد بيانات من ملف. البيانات هتتزامن مع Firestore تلقائيًا.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={exportData}
+              className="btn-press flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 font-display text-sm font-bold text-card hover:bg-brand-deep"
+            >
+              <I n="upload" className="h-4 w-4" />
+              تصدير البيانات
+            </button>
+            <button
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = ".json";
+                input.onchange = async (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (!file) return;
+                  const text = await file.text();
+                  await importData(text);
+                };
+                input.click();
+              }}
+              className="btn-press flex items-center gap-2 rounded-xl bg-gold px-5 py-2.5 font-display text-sm font-bold text-ink-950 hover:brightness-105"
+            >
+              <I n="cloud" className="h-4 w-4" />
+              استيراد البيانات
+            </button>
+          </div>
+        </div>
+      </Reveal>
+
       {/* Danger Zone */}
       {(sync.mode === "cloud" || sync.mode === "connecting") && (
-        <Reveal delay={400}>
+        <Reveal delay={450}>
           <div className="rounded-xl border-2 border-coral/30 bg-coral-soft/20 p-6">
             <div className="flex items-start gap-3 mb-4">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-coral text-card">
