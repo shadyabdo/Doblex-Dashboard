@@ -64,6 +64,8 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
   const [cover, setCover] = useState(editing?.cover ?? "");
   const [coverUrl, setCoverUrl] = useState("");
   const [images, setImages] = useState<ProjectImage[]>(editing?.images ?? []);
+  const [draggedImageId, setDraggedImageId] = useState<string | null>(null);
+  const [dragOverImageId, setDragOverImageId] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState(editing?.videoUrl ?? "");
   const [description, setDescription] = useState(editing?.description ?? "");
   const [details, setDetails] = useState(editing?.details ?? "");
@@ -116,6 +118,52 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
     setImages((prev) => [...prev, { id: gid(), src: v }]);
     setGalleryUrl("");
     toast("تمت إضافة الصورة للمعرض كرابط مباشر");
+  };
+
+  const handleDragStart = (e: React.DragEvent, imageId: string) => {
+    setDraggedImageId(imageId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragEnd = () => {
+    setDraggedImageId(null);
+    setDragOverImageId(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, imageId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverImageId(imageId);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverImageId(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetImageId: string) => {
+    e.preventDefault();
+    if (!draggedImageId || draggedImageId === targetImageId) {
+      setDraggedImageId(null);
+      setDragOverImageId(null);
+      return;
+    }
+
+    setImages((prev) => {
+      const newImages = [...prev];
+      const draggedIndex = newImages.findIndex((img) => img.id === draggedImageId);
+      const targetIndex = newImages.findIndex((img) => img.id === targetImageId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return prev;
+
+      const [draggedImage] = newImages.splice(draggedIndex, 1);
+      newImages.splice(targetIndex, 0, draggedImage);
+
+      return newImages;
+    });
+
+    setDraggedImageId(null);
+    setDragOverImageId(null);
+    toast("تم تغيير ترتيب الصور");
   };
 
   const addGoal = () => {
@@ -389,10 +437,40 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
             </button>
           </div>
           {images.length > 0 ? (
-            <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-              {images.map((im) => (
-                <Thumb key={im.id} src={im.src} onRemove={() => setImages((prev) => prev.filter((x) => x.id !== im.id))} />
-              ))}
+            <div>
+              <p className="mt-3 mb-2 flex items-center gap-1.5 text-[11px] font-bold text-ink-400">
+                <I n="sliders" className="h-3.5 w-3.5" />
+                اسحب الصور لتغيير ترتيبها
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                {images.map((im, index) => (
+                  <div
+                    key={im.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, im.id)}
+                    onDragEnd={handleDragEnd}
+                    onDragOver={(e) => handleDragOver(e, im.id)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={(e) => handleDrop(e, im.id)}
+                    className={`group relative cursor-move transition-all duration-200 ${
+                      draggedImageId === im.id ? "opacity-30 scale-95" : ""
+                    } ${
+                      dragOverImageId === im.id && draggedImageId !== im.id
+                        ? "ring-2 ring-brand ring-offset-2 rounded-xl"
+                        : ""
+                    }`}
+                    title="اسحب لتغيير الترتيب"
+                  >
+                    <Thumb src={im.src} onRemove={() => setImages((prev) => prev.filter((x) => x.id !== im.id))} />
+                    <div className="absolute top-2 start-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink-950/70 text-[10px] font-bold text-card backdrop-blur-sm">
+                      {index + 1}
+                    </div>
+                    <div className="absolute top-2 end-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink-950/70 text-card backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100">
+                      <I n="menu" className="h-3.5 w-3.5" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <p className="mt-3 rounded-xl border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-[12px] font-semibold text-ink-400">
