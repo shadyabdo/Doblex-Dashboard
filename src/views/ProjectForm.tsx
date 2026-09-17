@@ -558,11 +558,11 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
 
       {/* الأهداف والإنجازات */}
       <Step num={videoDomain ? "06" : "05"} title="الأهداف والإنجازات" desc="ما خططنا له، وما تحقق فعلًا بالأرقام">
-        <div className="grid gap-4 sm:gap-5 lg:gap-7 lg:grid-cols-2">
-          <div>
+        <div className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-1 lg:grid-cols-2 overflow-hidden">
+          <div className="min-w-0">
             <span className="lbl">الأهداف ({goals.length})</span>
-            <div className="flex gap-1.5 sm:gap-2">
-              <input className="inp !text-xs sm:!text-sm" placeholder="اكتب هدفًا واضغط Enter" value={goalText} onChange={(e) => setGoalText(e.target.value)} onKeyDown={goalKey} />
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              <input className="inp !text-xs sm:!text-sm flex-1 min-w-[120px]" placeholder="اكتب هدفًا واضغط Enter" value={goalText} onChange={(e) => setGoalText(e.target.value)} onKeyDown={goalKey} />
               <button type="button" onClick={addGoal} aria-label="إضافة هدف" className="btn-press shrink-0 rounded-lg sm:rounded-xl bg-brand px-2.5 sm:px-4 py-2 text-card hover:bg-brand-deep">
                 <I n="plus" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </button>
@@ -570,10 +570,10 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
             {goals.length > 0 && (
               <ul className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2">
                 {goals.map((g) => (
-                  <li key={g.id} className="pop flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 rounded-md sm:rounded-lg border border-line bg-card px-2 sm:px-3 py-1.5 sm:py-2">
+                  <li key={g.id} className="pop flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 rounded-md sm:rounded-lg border border-line bg-card px-2 sm:px-3 py-1.5 sm:py-2 overflow-hidden">
                     <I n="target" className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-brand" />
-                    <span className="flex-1 text-xs sm:text-sm font-semibold text-ink-700">{g.text}</span>
-                    <button type="button" onClick={() => setGoals((prev) => prev.filter((x) => x.id !== g.id))} aria-label="حذف الهدف" className="btn-press text-ink-300 hover:text-coral">
+                    <span className="flex-1 min-w-0 text-xs sm:text-sm font-semibold text-ink-700 break-words">{g.text}</span>
+                    <button type="button" onClick={() => setGoals((prev) => prev.filter((x) => x.id !== g.id))} aria-label="حذف الهدف" className="btn-press shrink-0 text-ink-300 hover:text-coral">
                       <I n="trash" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                   </li>
@@ -581,11 +581,11 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
               </ul>
             )}
           </div>
-          <div>
+          <div className="min-w-0">
             <span className="lbl">الإنجازات المحققة ({achievements.length})</span>
-            <div className="flex gap-1.5 sm:gap-2">
-              <input className="inp !w-16 sm:!w-20 lg:!w-24 shrink-0 text-center font-mono font-bold !text-xs sm:!text-sm" placeholder="+38%" value={achMetric} onChange={(e) => setAchMetric(e.target.value)} aria-label="الرقم المميز للإنجاز" />
-              <input className="inp !text-xs sm:!text-sm" placeholder="وصف الإنجاز ثم Enter" value={achText} onChange={(e) => setAchText(e.target.value)} onKeyDown={achKey} />
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
+              <input className="inp !w-14 sm:!w-16 lg:!w-20 shrink-0 text-center font-mono font-bold !text-xs sm:!text-sm" placeholder="+38%" value={achMetric} onChange={(e) => setAchMetric(e.target.value)} aria-label="الرقم المميز للإنجاز" />
+              <input className="inp !text-xs sm:!text-sm flex-1 min-w-[100px]" placeholder="وصف الإنجاز ثم Enter" value={achText} onChange={(e) => setAchText(e.target.value)} onKeyDown={achKey} />
               <button type="button" onClick={addAchievement} aria-label="إضافة إنجاز" className="btn-press shrink-0 rounded-lg sm:rounded-xl bg-gold px-2.5 sm:px-4 py-2 text-ink-950 hover:brightness-105">
                 <I n="plus" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </button>
@@ -593,11 +593,11 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
             {achievements.length > 0 && (
               <ul className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2">
                 {achievements.map((a) => (
-                  <li key={a.id} className="pop flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 rounded-md sm:rounded-lg border border-gold/30 bg-gold-soft/35 px-2 sm:px-3 py-1.5 sm:py-2">
+                  <li key={a.id} className="pop flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 rounded-md sm:rounded-lg border border-gold/30 bg-gold-soft/35 px-2 sm:px-3 py-1.5 sm:py-2 overflow-hidden">
                     <I n="trophy" className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-gold-deep" />
-                    <span className="w-12 sm:w-14 shrink-0 font-mono text-xs sm:text-sm font-bold text-ink-900">{a.metric}</span>
-                    <span className="flex-1 truncate text-xs sm:text-sm text-ink-600">{a.text}</span>
-                    <button type="button" onClick={() => setAchievements((prev) => prev.filter((x) => x.id !== a.id))} aria-label="حذف الإنجاز" className="btn-press text-ink-300 hover:text-coral">
+                    <span className="w-10 sm:w-12 lg:w-14 shrink-0 font-mono text-xs sm:text-sm font-bold text-ink-900 truncate">{a.metric}</span>
+                    <span className="flex-1 min-w-0 text-xs sm:text-sm text-ink-600 break-words">{a.text}</span>
+                    <button type="button" onClick={() => setAchievements((prev) => prev.filter((x) => x.id !== a.id))} aria-label="حذف الإنجاز" className="btn-press shrink-0 text-ink-300 hover:text-coral">
                       <I n="trash" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                   </li>
