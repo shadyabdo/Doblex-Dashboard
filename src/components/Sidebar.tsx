@@ -45,17 +45,29 @@ export default function Sidebar({
 
   return (
     <>
+      {/* Overlay - يظهر فقط على الموبايل والتابلت */}
       {open && (
-        <button
-          className="fixed inset-0 z-40 bg-ink-950/60 backdrop-blur-[2px] lg:hidden"
+        <div
+          className="fixed inset-0 z-40 bg-ink-950/60 backdrop-blur-[2px] transition-opacity duration-300 md:hidden"
           onClick={onClose}
           aria-label="إغلاق القائمة"
         />
       )}
+      
+      {/* السايدبار */}
       <aside
-        className={`fixed inset-y-0 start-0 z-50 flex h-screen shrink-0 flex-col bg-ink-950 text-ink-200 transition-all duration-300 ease-out lg:sticky lg:top-0 lg:z-20 lg:translate-x-0 ${
-          collapsed ? "w-[72px]" : "w-[276px]"
-        } ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        className={`
+          fixed inset-y-0 start-0 z-50 flex h-screen shrink-0 flex-col bg-ink-950 text-ink-200 
+          transition-all duration-300 ease-out
+          /* الموبايل: overlay */
+          ${open ? "translate-x-0" : "-translate-x-full"}
+          /* التابلت والمتوسط: sticky ودائم الظهور */
+          md:sticky md:top-0 md:z-20 md:translate-x-0 md:h-screen
+          /* الشاشات الكبيرة: sticky مع إمكانية الطي */
+          lg:sticky lg:top-0 lg:z-20
+          /* العرض */
+          ${collapsed ? "md:w-[72px] lg:w-[72px]" : "md:w-[240px] lg:w-[276px]"}
+        `}
         style={{
           backgroundImage:
             "radial-gradient(440px 240px at 50% -70px, rgba(225,155,16,0.16), transparent 70%), radial-gradient(420px 340px at 115% 105%, rgba(14,110,85,0.35), transparent 72%), linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)",
@@ -73,13 +85,13 @@ export default function Sidebar({
               <p className="mt-1.5 font-mono text-[10px] font-semibold tracking-[0.3em] text-gold">DUBLEX · OPS</p>
             </div>
           )}
-          <button className="btn-press text-ink-400 hover:text-card lg:hidden" onClick={onClose} aria-label="إغلاق">
+          <button className="btn-press text-ink-400 hover:text-card md:hidden" onClick={onClose} aria-label="إغلاق">
             <I n="x" className="h-5 w-5" />
           </button>
         </div>
 
         {/* الأقسام */}
-        <nav className={`flex-1 overflow-y-auto ${collapsed ? "px-2" : "px-4"}`}>
+        <nav className={`flex-1 overflow-y-auto ${collapsed ? "md:px-2 lg:px-2" : "px-4"}`}>
           {!collapsed && (
             <p className="mb-3 px-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
               الأقسام / SECTIONS
@@ -91,10 +103,16 @@ export default function Sidebar({
               return (
                 <li key={it.key}>
                   <button
-                    onClick={() => go({ name: it.key })}
+                    onClick={() => {
+                      go({ name: it.key });
+                      // على الموبايل، اقفل السايدبار بعد الضغط
+                      if (window.innerWidth < 768) {
+                        onClose();
+                      }
+                    }}
                     title={collapsed ? it.label : undefined}
                     className={`btn-press group relative flex w-full items-center gap-3 rounded-xl transition-all duration-200 ${
-                      collapsed ? "justify-center px-2 py-3" : "px-3.5 py-3"
+                      collapsed ? "md:justify-center lg:justify-center md:px-2 lg:px-2 py-3" : "px-3.5 py-3"
                     } ${
                       active
                         ? "bg-ink-800/90 text-card shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
@@ -131,29 +149,37 @@ export default function Sidebar({
           </ul>
 
           {/* إجراءات سريعة */}
-          {!collapsed && (
-            <>
-              <p className="mb-3 mt-8 px-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
-                إجراءات / ACTIONS
-              </p>
-              <button
-                onClick={() => go({ name: "project-form" })}
-                className="btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-4 py-3 font-display text-sm font-extrabold text-ink-950 shadow-lg shadow-gold/15 hover:brightness-110"
-              >
-                <I n="plus" className="h-4 w-4" />
-                إضافة مشروع جديد
-              </button>
-              <button
-                onClick={() => go({ name: "article-form" })}
-                className="btn-press mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700 px-4 py-2.5 text-sm font-semibold text-ink-200 transition-colors hover:border-gold/60 hover:text-gold"
-              >
-                <I n="pen" className="h-4 w-4" />
-                مقال جديد
-              </button>
-            </>
-          )}
+          <div className={collapsed ? "hidden lg:block" : ""}>
+            {!collapsed && (
+              <>
+                <p className="mb-3 mt-8 px-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
+                  إجراءات / ACTIONS
+                </p>
+                <button
+                  onClick={() => {
+                    go({ name: "project-form" });
+                    if (window.innerWidth < 768) onClose();
+                  }}
+                  className="btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-4 py-3 font-display text-sm font-extrabold text-ink-950 shadow-lg shadow-gold/15 hover:brightness-110"
+                >
+                  <I n="plus" className="h-4 w-4" />
+                  إضافة مشروع جديد
+                </button>
+                <button
+                  onClick={() => {
+                    go({ name: "article-form" });
+                    if (window.innerWidth < 768) onClose();
+                  }}
+                  className="btn-press mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700 px-4 py-2.5 text-sm font-semibold text-ink-200 transition-colors hover:border-gold/60 hover:text-gold"
+                >
+                  <I n="pen" className="h-4 w-4" />
+                  مقال جديد
+                </button>
+              </>
+            )}
+          </div>
           {collapsed && (
-            <div className="mt-6 space-y-2">
+            <div className="mt-6 hidden space-y-2 lg:block">
               <button
                 onClick={() => go({ name: "project-form" })}
                 title="إضافة مشروع جديد"
@@ -172,8 +198,8 @@ export default function Sidebar({
           )}
         </nav>
 
-        {/* زر الطي */}
-        <div className={`px-4 pb-2 ${collapsed ? "px-2" : ""}`}>
+        {/* زر الطي - يظهر فقط على الشاشات الكبيرة */}
+        <div className={`hidden px-4 pb-2 lg:block ${collapsed ? "lg:px-2" : ""}`}>
           <button
             onClick={onToggleCollapse}
             title={collapsed ? "إظهار السايدبار" : "طي السايدبار"}
