@@ -48,7 +48,7 @@ export default function Sidebar({
       {/* Overlay - يظهر فقط على الموبايل والتابلت */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-ink-950/60 backdrop-blur-[2px] transition-opacity duration-300 md:hidden"
+          className="fixed inset-0 z-40 bg-ink-950/60 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden"
           onClick={onClose}
           aria-label="إغلاق القائمة"
         />
@@ -57,16 +57,16 @@ export default function Sidebar({
       {/* السايدبار */}
       <aside
         className={`
-          fixed inset-y-0 start-0 z-50 flex h-screen shrink-0 flex-col bg-ink-950 text-ink-200 
+          fixed inset-y-0 z-50 flex h-screen shrink-0 flex-col bg-ink-950 text-ink-200 
           transition-all duration-300 ease-out
-          /* الموبايل: overlay */
-          ${open ? "translate-x-0" : "-translate-x-full"}
-          /* التابلت والمتوسط: sticky ودائم الظهور */
-          md:sticky md:top-0 md:z-20 md:translate-x-0 md:h-screen
-          /* الشاشات الكبيرة: sticky مع إمكانية الطي */
-          lg:sticky lg:top-0 lg:z-20
+          /* الموبايل والتابلت: offcanvas على اليمين */
+          end-0 ${open ? "translate-x-0" : "translate-x-full"}
+          lg:translate-x-0
+          /* الشاشات الكبيرة: ثابت على الشمال */
+          lg:sticky lg:top-0 lg:z-20 lg:end-auto lg:start-0
           /* العرض */
-          ${collapsed ? "md:w-[72px] lg:w-[72px]" : "md:w-[240px] lg:w-[276px]"}
+          ${collapsed ? "lg:w-[72px]" : "lg:w-[276px]"}
+          w-[280px] lg:w-auto
         `}
         style={{
           backgroundImage:
@@ -105,8 +105,8 @@ export default function Sidebar({
                   <button
                     onClick={() => {
                       go({ name: it.key });
-                      // على الموبايل، اقفل السايدبار بعد الضغط
-                      if (window.innerWidth < 768) {
+                      // على الموبايل والتابلت، اقفل السايدبار بعد الضغط
+                      if (window.innerWidth < 1024) {
                         onClose();
                       }
                     }}
@@ -158,7 +158,7 @@ export default function Sidebar({
                 <button
                   onClick={() => {
                     go({ name: "project-form" });
-                    if (window.innerWidth < 768) onClose();
+                    if (window.innerWidth < 1024) onClose();
                   }}
                   className="btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-4 py-3 font-display text-sm font-extrabold text-ink-950 shadow-lg shadow-gold/15 hover:brightness-110"
                 >
@@ -168,7 +168,7 @@ export default function Sidebar({
                 <button
                   onClick={() => {
                     go({ name: "article-form" });
-                    if (window.innerWidth < 768) onClose();
+                    if (window.innerWidth < 1024) onClose();
                   }}
                   className="btn-press mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700 px-4 py-2.5 text-sm font-semibold text-ink-200 transition-colors hover:border-gold/60 hover:text-gold"
                 >
