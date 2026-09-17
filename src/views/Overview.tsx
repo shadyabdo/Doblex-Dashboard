@@ -248,10 +248,10 @@ export default function Overview({ go }: { go: (v: View) => void; onCloud?: () =
       <Reveal delay={100}>
         <div className="rounded-xl border border-line bg-card p-4 sm:p-5">
           <Overline>إدارة البيانات</Overline>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <button
               onClick={exportData}
-              className="btn-press flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 font-display text-sm font-bold text-card transition-colors hover:bg-brand-deep"
+              className="btn-press flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 font-display text-sm font-bold text-card transition-colors hover:bg-brand-deep sm:justify-start"
             >
               <I n="upload" className="h-4 w-4" />
               تصدير البيانات
@@ -269,7 +269,7 @@ export default function Overview({ go }: { go: (v: View) => void; onCloud?: () =
                 };
                 input.click();
               }}
-              className="btn-press flex items-center gap-2 rounded-xl bg-gold px-4 py-2.5 font-display text-sm font-bold text-ink-950 transition-colors hover:brightness-105"
+              className="btn-press flex items-center justify-center gap-2 rounded-xl bg-gold px-4 py-3 font-display text-sm font-bold text-ink-950 transition-colors hover:brightness-105 sm:justify-start"
             >
               <I n="cloud" className="h-4 w-4" />
               استيراد البيانات
@@ -288,7 +288,7 @@ export default function Overview({ go }: { go: (v: View) => void; onCloud?: () =
                   }
                 }
               }}
-              className="btn-press flex items-center gap-2 rounded-xl border-2 border-coral/40 bg-coral-soft/30 px-4 py-2.5 font-display text-sm font-bold text-coral transition-colors hover:bg-coral hover:text-card"
+              className="btn-press flex items-center justify-center gap-2 rounded-xl border-2 border-coral/40 bg-coral-soft/30 px-4 py-3 font-display text-sm font-bold text-coral transition-colors hover:bg-coral hover:text-card sm:justify-start sm:col-span-2 lg:col-span-1"
             >
               <I n="trash" className="h-4 w-4" />
               مسح كل البيانات
@@ -317,9 +317,9 @@ export default function Overview({ go }: { go: (v: View) => void; onCloud?: () =
               </span>
             </div>
           </div>
-          <div className="mt-4 h-[228px]" dir="ltr">
+          <div className="mt-4 h-[200px] sm:h-[228px]" dir="ltr">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={activity} margin={{ top: 8, left: -18, right: 8, bottom: 0 }}>
+              <AreaChart data={activity} margin={{ top: 8, left: window.innerWidth < 640 ? 0 : -18, right: 8, bottom: 0 }}>
                 <defs>
                   <linearGradient id="gProj" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#0E6E55" stopOpacity={0.32} />
