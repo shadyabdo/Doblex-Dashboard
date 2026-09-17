@@ -298,3 +298,75 @@ textarea.inp {
     animation: none !important;
   }
 }
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  /* تصغير النصوص */
+  h1 {
+    font-size: 1.5rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  h2 {
+    font-size: 1.25rem !important;
+    line-height: 1.4 !important;
+  }
+  
+  h3 {
+    font-size: 1.125rem !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* تكبير الأزرار لتكون سهلة الضغط */
+  button, .btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* تحسين الـ inputs */
+  input, textarea, select {
+    font-size: 16px !important; /* يمنع التكبير التلقائي على iOS */
+  }
+  
+  /* تقليل المسافات */
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.75rem !important;
+  }
+  
+  /* تحسين الـ padding */
+  .p-6 {
+    padding: 1rem !important;
+  }
+  
+  .p-8 {
+    padding: 1.25rem !important;
+  }
+  
+  /* جعل الجداول تتحول لبطاقات */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+  h1 {
+    font-size: 1.75rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+  }
+  
+  .p-6 {
+    padding: 1.25rem !important;
+  }
+  
+  .p-8 {
+    padding: 1.5rem !important;
+  }
+}
