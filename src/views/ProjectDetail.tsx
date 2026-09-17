@@ -251,9 +251,9 @@ export default function ProjectDetail({ id, go }: { id: string; go: (v: View) =>
       {project.images.length > 0 && (
         <Reveal delay={350}>
           <div className="rounded-xl border border-line bg-card p-6">
-            <Overline>الصور</Overline>
+            <Overline>الصور ({project.images.length})</Overline>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {project.images.map((img) => (
+              {project.images.map((img, index) => (
                 <a
                   key={img.id}
                   href={img.src}
@@ -268,6 +268,9 @@ export default function ProjectDetail({ id, go }: { id: string; go: (v: View) =>
                   />
                   <div className="absolute inset-0 flex items-center justify-center bg-ink-950/0 transition-colors group-hover:bg-ink-950/20">
                     <I n="eye" className="h-8 w-8 text-card opacity-0 transition-opacity group-hover:opacity-100" />
+                  </div>
+                  <div className="absolute top-2 start-2 flex h-7 w-7 items-center justify-center rounded-full bg-ink-950/70 text-xs font-bold text-card backdrop-blur-sm">
+                    {index + 1}
                   </div>
                 </a>
               ))}
