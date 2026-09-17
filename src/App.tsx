@@ -258,13 +258,7 @@ function Shell() {
         {/* الترويسة */}
         <header className="sticky top-0 z-30 border-b border-line bg-paper/85 backdrop-blur-md">
           <div className="mx-auto flex w-full max-w-[1280px] items-center gap-2 sm:gap-3 px-3 sm:px-4 lg:px-8 py-2.5 sm:py-3.5">
-            <button
-              className="btn-press rounded-lg border border-ink-200 bg-card p-1.5 sm:p-2 text-ink-600 lg:hidden"
-              onClick={() => setMenu(true)}
-              aria-label="فتح القائمة"
-            >
-              <I n="menu" className="h-4 w-4 sm:h-5 sm:w-5" />
-            </button>
+            {/* زر طي السايدبار - يظهر فقط على الشاشات الكبيرة */}
             <button
               className="btn-press hidden rounded-lg border border-ink-200 bg-card p-1.5 sm:p-2 text-ink-600 hover:border-brand hover:text-brand lg:flex"
               onClick={toggleSidebar}
@@ -297,7 +291,7 @@ function Shell() {
         </header>
 
         {/* المحتوى */}
-        <main className="flex-1">
+        <main className="flex-1 pb-20 lg:pb-0">
           <div
             key={view.name + (view.projectId ?? "") + (view.articleId ?? "") + (view.fieldId ?? "")}
             className="rise mx-auto w-full max-w-[1280px] px-3 sm:px-4 lg:px-8 py-5 sm:py-7"
@@ -321,7 +315,7 @@ function Shell() {
           </div>
         </main>
 
-        <footer className="border-t border-line bg-card/60">
+        <footer className="border-t border-line bg-card/60 mb-16 lg:mb-0">
           <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-2 sm:gap-3 px-3 sm:px-4 lg:px-8 py-3 sm:py-4">
             <span className="relative flex items-center gap-1.5 sm:gap-2.5 text-[11px] sm:text-[12px] font-semibold text-ink-500">
               <Ticks className="text-ink-200" />
