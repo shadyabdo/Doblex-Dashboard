@@ -178,10 +178,19 @@ function Shell() {
   const [view, setView] = useState<View>({ name: "overview" });
   const [menu, setMenu] = useState(false);
   const [cloudOpen, setCloudOpen] = useState(false); // مش مستخدم دلوقتي - نخليه للـ compatibility
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    return localStorage.getItem("dublex-sidebar-collapsed") === "true";
+  });
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
     return sessionStorage.getItem("dublex-logged-in") === "true";
   });
   const { db, sync } = useStore();
+
+  const toggleSidebar = () => {
+    const newState = !sidebarCollapsed;
+    setSidebarCollapsed(newState);
+    localStorage.setItem("dublex-sidebar-collapsed", String(newState));
+  };
 
   const handleLogin = () => {
     sessionStorage.setItem("dublex-logged-in", "true");
@@ -235,7 +244,15 @@ function Shell() {
 
   return (
     <div className="flex min-h-screen">
-      <Sidebar view={view} go={go} open={menu} onClose={() => setMenu(false)} onCloud={() => setCloudOpen(true)} />
+      <Sidebar 
+        view={view} 
+        go={go} 
+        open={menu} 
+        onClose={() => setMenu(false)} 
+        onCloud={() => setCloudOpen(true)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebar}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col">
         {/* الترويسة */}
@@ -247,6 +264,14 @@ function Shell() {
               aria-label="فتح القائمة"
             >
               <I n="menu" className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+            <button
+              className="btn-press hidden rounded-lg border border-ink-200 bg-card p-1.5 sm:p-2 text-ink-600 hover:border-brand hover:text-brand lg:flex"
+              onClick={toggleSidebar}
+              aria-label={sidebarCollapsed ? "إظهار السايدبار" : "طي السايدبار"}
+              title={sidebarCollapsed ? "إظهار السايدبار" : "طي السايدبار"}
+            >
+              <I n={sidebarCollapsed ? "menu" : "arrow"} className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
             <div className="min-w-0 flex-1">
               <p className="font-mono text-[9px] sm:text-[10px] font-semibold tracking-[0.28em] text-ink-400">
