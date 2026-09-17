@@ -135,6 +135,36 @@ export default function ProjectDetail({ id, go }: { id: string; go: (v: View) =>
         </Reveal>
       )}
 
+      {/* Video */}
+      {project.videoUrl && (
+        <Reveal delay={120}>
+          <div className="rounded-xl border border-line bg-card p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <Overline>فيديو المشروع</Overline>
+              <a
+                href={project.videoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-press flex items-center gap-1.5 rounded-lg border border-ink-200 px-3 py-1.5 text-[11px] font-bold text-ink-500 transition-colors hover:border-coral hover:text-coral"
+              >
+                <I n="link" className="h-3.5 w-3.5" />
+                فتح في المنصة ↗
+              </a>
+            </div>
+            <div className="relative aspect-video overflow-hidden rounded-xl border border-line bg-ink-950 shadow-[0_20px_44px_-20px_rgba(11,36,28,0.45)]">
+              <iframe
+                src={project.videoUrl}
+                title={`فيديو ${project.title}`}
+                className="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            </div>
+          </div>
+        </Reveal>
+      )}
+
       {/* Description */}
       {project.description && (
         <Reveal delay={150}>

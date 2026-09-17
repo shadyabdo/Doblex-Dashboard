@@ -8,12 +8,16 @@ export default function Sidebar({
   open,
   onClose,
   onCloud,
+  collapsed,
+  onToggleCollapse,
 }: {
   view: View;
   go: (v: View) => void;
   open: boolean;
   onClose: () => void;
   onCloud: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }) {
   const { db, sync } = useStore();
 
@@ -49,9 +53,9 @@ export default function Sidebar({
         />
       )}
       <aside
-        className={`fixed inset-y-0 start-0 z-50 flex h-screen w-[276px] shrink-0 flex-col bg-ink-950 text-ink-200 transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:z-20 lg:translate-x-0 ${
-          open ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed inset-y-0 start-0 z-50 flex h-screen shrink-0 flex-col bg-ink-950 text-ink-200 transition-all duration-300 ease-out lg:sticky lg:top-0 lg:z-20 lg:translate-x-0 ${
+          collapsed ? "w-[72px]" : "w-[276px]"
+        } ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
         style={{
           backgroundImage:
             "radial-gradient(440px 240px at 50% -70px, rgba(225,155,16,0.16), transparent 70%), radial-gradient(420px 340px at 115% 105%, rgba(14,110,85,0.35), transparent 72%), linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)",
@@ -59,24 +63,28 @@ export default function Sidebar({
         }}
       >
         {/* الهوية */}
-        <div className="flex items-center gap-3.5 px-5 pb-6 pt-6">
+        <div className={`flex items-center gap-3.5 pb-6 pt-6 ${collapsed ? "justify-center px-2" : "px-5"}`}>
           <div className="relative flex h-13 w-13 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-card p-1 shadow-lg shadow-ink-950/50" style={{ width: 52, height: 52 }}>
             <img src={LOGO_URL} alt="شعار دوبلكس" className="h-full w-full object-contain" />
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="font-display text-2xl font-extrabold leading-none tracking-tight text-card">دوبلكس</p>
-            <p className="mt-1.5 font-mono text-[10px] font-semibold tracking-[0.3em] text-gold">DUBLEX · OPS</p>
-          </div>
+          {!collapsed && (
+            <div className="min-w-0 flex-1">
+              <p className="font-display text-2xl font-extrabold leading-none tracking-tight text-card">دوبلكس</p>
+              <p className="mt-1.5 font-mono text-[10px] font-semibold tracking-[0.3em] text-gold">DUBLEX · OPS</p>
+            </div>
+          )}
           <button className="btn-press text-ink-400 hover:text-card lg:hidden" onClick={onClose} aria-label="إغلاق">
             <I n="x" className="h-5 w-5" />
           </button>
         </div>
 
         {/* الأقسام */}
-        <nav className="flex-1 overflow-y-auto px-4">
-          <p className="mb-3 px-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
-            الأقسام / SECTIONS
-          </p>
+        <nav className={`flex-1 overflow-y-auto ${collapsed ? "px-2" : "px-4"}`}>
+          {!collapsed && (
+            <p className="mb-3 px-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
+              الأقسام / SECTIONS
+            </p>
+          )}
           <ul className="space-y-1.5">
             {items.map((it, idx) => {
               const active = isActive(it.key);
@@ -84,28 +92,37 @@ export default function Sidebar({
                 <li key={it.key}>
                   <button
                     onClick={() => go({ name: it.key })}
-                    className={`btn-press group relative flex w-full items-center gap-3 rounded-xl px-3.5 py-3 transition-all duration-200 ${
+                    title={collapsed ? it.label : undefined}
+                    className={`btn-press group relative flex w-full items-center gap-3 rounded-xl transition-all duration-200 ${
+                      collapsed ? "justify-center px-2 py-3" : "px-3.5 py-3"
+                    } ${
                       active
                         ? "bg-ink-800/90 text-card shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                         : "text-ink-300 hover:bg-ink-800/50 hover:text-card"
                     }`}
                   >
                     {active && <span className="absolute inset-y-2.5 start-0 w-[3px] rounded-full bg-gold" />}
-                    <span className={`font-mono text-[11px] font-bold ${active ? "text-gold" : "text-ink-600"}`}>
-                      0{idx + 1}
-                    </span>
+                    {!collapsed && (
+                      <span className={`font-mono text-[11px] font-bold ${active ? "text-gold" : "text-ink-600"}`}>
+                        0{idx + 1}
+                      </span>
+                    )}
                     <span className={active ? "text-gold" : "text-ink-400 transition-colors group-hover:text-gold"}>
                       <I n={it.icon} className="h-5 w-5" />
                     </span>
-                    <span className="font-display text-sm font-bold">{it.label}</span>
-                    {typeof it.count === "number" && (
-                      <span
-                        className={`ms-auto rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors ${
-                          active ? "bg-gold text-ink-950" : "bg-ink-800 text-ink-400"
-                        }`}
-                      >
-                        {it.count}
-                      </span>
+                    {!collapsed && (
+                      <>
+                        <span className="font-display text-sm font-bold">{it.label}</span>
+                        {typeof it.count === "number" && (
+                          <span
+                            className={`ms-auto rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold transition-colors ${
+                              active ? "bg-gold text-ink-950" : "bg-ink-800 text-ink-400"
+                            }`}
+                          >
+                            {it.count}
+                          </span>
+                        )}
+                      </>
                     )}
                   </button>
                 </li>
@@ -114,50 +131,97 @@ export default function Sidebar({
           </ul>
 
           {/* إجراءات سريعة */}
-          <p className="mb-3 mt-8 px-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
-            إجراءات / ACTIONS
-          </p>
-          <button
-            onClick={() => go({ name: "project-form" })}
-            className="btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-4 py-3 font-display text-sm font-extrabold text-ink-950 shadow-lg shadow-gold/15 hover:brightness-110"
-          >
-            <I n="plus" className="h-4 w-4" />
-            إضافة مشروع جديد
-          </button>
-          <button
-            onClick={() => go({ name: "article-form" })}
-            className="btn-press mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700 px-4 py-2.5 text-sm font-semibold text-ink-200 transition-colors hover:border-gold/60 hover:text-gold"
-          >
-            <I n="pen" className="h-4 w-4" />
-            مقال جديد
-          </button>
+          {!collapsed && (
+            <>
+              <p className="mb-3 mt-8 px-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
+                إجراءات / ACTIONS
+              </p>
+              <button
+                onClick={() => go({ name: "project-form" })}
+                className="btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-4 py-3 font-display text-sm font-extrabold text-ink-950 shadow-lg shadow-gold/15 hover:brightness-110"
+              >
+                <I n="plus" className="h-4 w-4" />
+                إضافة مشروع جديد
+              </button>
+              <button
+                onClick={() => go({ name: "article-form" })}
+                className="btn-press mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700 px-4 py-2.5 text-sm font-semibold text-ink-200 transition-colors hover:border-gold/60 hover:text-gold"
+              >
+                <I n="pen" className="h-4 w-4" />
+                مقال جديد
+              </button>
+            </>
+          )}
+          {collapsed && (
+            <div className="mt-6 space-y-2">
+              <button
+                onClick={() => go({ name: "project-form" })}
+                title="إضافة مشروع جديد"
+                className="btn-press flex w-full items-center justify-center rounded-xl bg-gold p-3 text-ink-950 shadow-lg shadow-gold/15 hover:brightness-110"
+              >
+                <I n="plus" className="h-5 w-5" />
+              </button>
+              <button
+                onClick={() => go({ name: "article-form" })}
+                title="مقال جديد"
+                className="btn-press flex w-full items-center justify-center rounded-xl border border-ink-700 p-3 text-ink-200 transition-colors hover:border-gold/60 hover:text-gold"
+              >
+                <I n="pen" className="h-5 w-5" />
+              </button>
+            </div>
+          )}
         </nav>
 
+        {/* زر الطي */}
+        <div className={`px-4 pb-2 ${collapsed ? "px-2" : ""}`}>
+          <button
+            onClick={onToggleCollapse}
+            title={collapsed ? "إظهار السايدبار" : "طي السايدبار"}
+            className="btn-press flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700/90 bg-ink-800/50 p-2.5 text-ink-400 transition-colors hover:border-brand/60 hover:text-brand"
+          >
+            <I n={collapsed ? "arrow" : "arrow"} className={`h-4 w-4 transition-transform ${collapsed ? "rotate-180" : ""}`} />
+            {!collapsed && <span className="text-xs font-semibold">طي القائمة</span>}
+          </button>
+        </div>
+
         {/* حالة المزامنة */}
-        <div className="px-4 pb-4">
+        <div className={`pb-4 ${collapsed ? "px-2" : "px-4"}`}>
           <button
             onClick={onCloud}
-            className="btn-press group w-full rounded-xl border border-ink-700/90 bg-ink-800/50 p-4 text-start transition-colors hover:border-brand/60"
+            title={collapsed ? syncMeta.label : undefined}
+            className={`btn-press group w-full rounded-xl border border-ink-700/90 bg-ink-800/50 text-start transition-colors hover:border-brand/60 ${
+              collapsed ? "p-3" : "p-4"
+            }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
-                SYNC / المزامنة
-              </span>
-              <span className="text-ink-400 transition-colors group-hover:text-gold">
-                <I n="cloud" className="h-4 w-4" />
-              </span>
-            </div>
-            <div className="mt-2.5 flex items-center gap-2">
-              <span className={`h-2.5 w-2.5 rounded-full ${syncMeta.dot}`} />
-              <span className="font-display text-[13px] font-bold text-card">{syncMeta.label}</span>
-            </div>
-            <p className="mt-1 truncate text-[11px] text-ink-400" title={syncMeta.sub}>
-              {syncMeta.sub}
-            </p>
+            {collapsed ? (
+              <div className="flex items-center justify-center">
+                <span className={`h-3 w-3 rounded-full ${syncMeta.dot}`} />
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
+                    SYNC / المزامنة
+                  </span>
+                  <span className="text-ink-400 transition-colors group-hover:text-gold">
+                    <I n="cloud" className="h-4 w-4" />
+                  </span>
+                </div>
+                <div className="mt-2.5 flex items-center gap-2">
+                  <span className={`h-2.5 w-2.5 rounded-full ${syncMeta.dot}`} />
+                  <span className="font-display text-[13px] font-bold text-card">{syncMeta.label}</span>
+                </div>
+                <p className="mt-1 truncate text-[11px] text-ink-400" title={syncMeta.sub}>
+                  {syncMeta.sub}
+                </p>
+              </>
+            )}
           </button>
-          <p className="mt-3.5 text-center font-mono text-[10px] font-medium tracking-[0.2em] text-ink-600">
-            DUBLEX DASHBOARD · V2.0
-          </p>
+          {!collapsed && (
+            <p className="mt-3.5 text-center font-mono text-[10px] font-medium tracking-[0.2em] text-ink-600">
+              DUBLEX DASHBOARD · V2.0
+            </p>
+          )}
         </div>
       </aside>
     </>
