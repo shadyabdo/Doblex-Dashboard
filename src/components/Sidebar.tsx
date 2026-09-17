@@ -48,25 +48,20 @@ export default function Sidebar({
       {/* Overlay - يظهر فقط على الموبايل والتابلت */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-ink-950/60 backdrop-blur-[2px] transition-opacity duration-300 lg:hidden"
+          className="fixed inset-0 z-40 bg-ink-950/60 backdrop-blur-[2px] lg:hidden"
           onClick={onClose}
           aria-label="إغلاق القائمة"
         />
       )}
       
-      {/* السايدبار */}
+      {/* السايدبار - على اليمين في كل الشاشات */}
       <aside
         className={`
-          fixed inset-y-0 z-50 flex h-screen shrink-0 flex-col bg-ink-950 text-ink-200 
+          fixed top-0 end-0 z-50 flex flex-col bg-ink-950 text-ink-200 h-screen
           transition-all duration-300 ease-out
-          /* الموبايل والتابلت: offcanvas على اليمين */
-          end-0 ${open ? "translate-x-0" : "translate-x-full"}
-          lg:translate-x-0
-          /* الشاشات الكبيرة: ثابت على الشمال */
-          lg:sticky lg:top-0 lg:z-20 lg:end-auto lg:start-0
-          /* العرض */
-          ${collapsed ? "lg:w-[72px]" : "lg:w-[276px]"}
-          w-[280px] lg:w-auto
+          ${open ? "translate-x-0" : "translate-x-full"}
+          lg:sticky lg:translate-x-0
+          ${collapsed ? "w-[72px] lg:w-[72px]" : "w-[280px] lg:w-[276px]"}
         `}
         style={{
           backgroundImage:
