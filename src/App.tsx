@@ -271,7 +271,7 @@ function Shell() {
               aria-label={sidebarCollapsed ? "إظهار السايدبار" : "طي السايدبار"}
               title={sidebarCollapsed ? "إظهار السايدبار" : "طي السايدبار"}
             >
-              <I n={sidebarCollapsed ? "menu" : "arrow"} className="h-4 w-4 sm:h-5 sm:w-5" />
+              <I n={sidebarCollapsed ? "arrow" : "menu"} className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
             <div className="min-w-0 flex-1">
               <p className="font-mono text-[9px] sm:text-[10px] font-semibold tracking-[0.28em] text-ink-400">
