@@ -34,15 +34,15 @@ function Step({
   children: ReactNode;
 }) {
   return (
-    <section className="relative rounded-xl border border-line bg-card p-4 sm:p-5 lg:p-7 shadow-sm">
+    <section className="relative rounded-lg sm:rounded-xl border border-line bg-card p-3 sm:p-4 lg:p-7 shadow-sm">
       <Ticks className="text-ink-200" />
-      <div className="mb-4 sm:mb-5 flex items-center gap-3 sm:gap-4">
-        <span className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-ink-950 font-mono text-sm sm:text-[15px] font-bold text-gold">
+      <div className="mb-3 sm:mb-4 lg:mb-5 flex items-center gap-2 sm:gap-3 lg:gap-4">
+        <span className="flex h-9 w-9 sm:h-10 sm:w-10 lg:h-11 lg:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-ink-950 font-mono text-xs sm:text-sm lg:text-[15px] font-bold text-gold">
           {num}
         </span>
         <div className="flex-1 min-w-0">
-          <h3 className="font-display text-base sm:text-lg font-extrabold text-ink-900">{title}</h3>
-          <p className="text-[11px] sm:text-[12px] text-ink-400">{desc}</p>
+          <h3 className="font-display text-sm sm:text-base lg:text-lg font-extrabold text-ink-900">{title}</h3>
+          <p className="text-[10px] sm:text-[11px] lg:text-[12px] text-ink-400">{desc}</p>
         </div>
         <span className="hidden h-px flex-1 bg-gradient-to-l from-line to-transparent sm:block" />
       </div>
@@ -238,15 +238,15 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
   };
 
   return (
-    <form onSubmit={save} className="space-y-5">
+    <form onSubmit={save} className="space-y-3 sm:space-y-4 lg:space-y-5">
       <div className="rise">
         <Overline>{editing ? "03 / تعديل مشروع" : "03 / مشروع جديد"}</Overline>
-        <h2 className="mt-2 overflow-hidden font-display text-xl sm:text-2xl lg:text-[32px] font-extrabold text-ink-900 sm:leading-tight">
+        <h2 className="mt-1.5 sm:mt-2 overflow-hidden font-display text-lg sm:text-xl lg:text-2xl xl:text-[32px] font-extrabold text-ink-900 sm:leading-tight">
           <span className="line-mask">
             {editing ? `تعديل «${editing.title}»` : "وثّق مشروعًا جديدًا للفريق"}
           </span>
         </h2>
-        <p className="mt-2 max-w-2xl text-xs sm:text-sm leading-6 sm:leading-7 text-ink-500">
+        <p className="mt-1.5 sm:mt-2 max-w-2xl text-[11px] sm:text-xs lg:text-sm leading-5 sm:leading-6 lg:leading-7 text-ink-500">
           {videoDomain
             ? "ست خطوات: المجال ← البيانات ← الصور ← الفيديو ← التفاصيل ← الأهداف والإنجازات. كل ما تحفظه"
             : "خمس خطوات: المجال ← البيانات ← الصور ← التفاصيل ← الأهداف والإنجازات. كل ما تحفظه"}
@@ -257,23 +257,23 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
       {/* 01 المجال */}
       <Step num="01" title="اختر المجال" desc="أي خط من خطوط عمل الفريق يتبعه هذا المشروع؟">
         {db.fields.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-ink-200 bg-ink-50/50 px-5 py-9 text-center">
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-card text-ink-400 shadow-sm">
-              <I n="layers" className="h-6 w-6" />
+          <div className="rounded-lg sm:rounded-xl border border-dashed border-ink-200 bg-ink-50/50 px-3 sm:px-5 py-6 sm:py-9 text-center">
+            <span className="mx-auto flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-card text-ink-400 shadow-sm">
+              <I n="layers" className="h-5 w-5 sm:h-6 sm:w-6" />
             </span>
-            <p className="mt-3 font-display text-sm font-extrabold text-ink-700">لا توجد مجالات بعد — أضف مجالًا أولًا</p>
-            <p className="mt-1 text-xs text-ink-400">مثل: تطوير الويب، التسويق الرقمي، تصميم الجرافيك…</p>
+            <p className="mt-2 sm:mt-3 font-display text-xs sm:text-sm font-extrabold text-ink-700">لا توجد مجالات بعد — أضف مجالًا أولًا</p>
+            <p className="mt-1 text-[10px] sm:text-xs text-ink-400">مثل: تطوير الويب، التسويق الرقمي، تصميم الجرافيك…</p>
             <button
               type="button"
               onClick={() => go({ name: "fields" })}
-              className="btn-press mx-auto mt-4 flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-bold text-card hover:bg-brand-deep"
+              className="btn-press mx-auto mt-3 sm:mt-4 flex items-center gap-1.5 sm:gap-2 rounded-lg sm:rounded-xl bg-brand px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-card hover:bg-brand-deep"
             >
-              <I n="layers" className="h-4 w-4" />
+              <I n="layers" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               الذهاب إلى المجالات
             </button>
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
             {db.fields.map((f) => {
               const sel = fieldId === f.id;
               return (
@@ -281,30 +281,30 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
                   key={f.id}
                   type="button"
                   onClick={() => setFieldId(f.id)}
-                  className={`btn-press relative rounded-xl border-2 p-4 text-start transition-all duration-200 ${
+                  className={`btn-press relative rounded-lg sm:rounded-xl border-2 p-2.5 sm:p-4 text-start transition-all duration-200 ${
                     sel ? "border-brand bg-brand-soft/40 shadow-sm" : "border-line bg-card hover:-translate-y-0.5 hover:border-ink-300"
                   }`}
                 >
                   <span
-                    className={`absolute top-3 end-3 flex h-5 w-5 items-center justify-center rounded-full transition-all ${
+                    className={`absolute top-2 end-2 sm:top-3 sm:end-3 flex h-4 w-4 sm:h-5 sm:w-5 items-center justify-center rounded-full transition-all ${
                       sel ? "bg-brand text-card scale-100" : "border-2 border-ink-200 text-transparent scale-90"
                     }`}
                   >
-                    <I n="check" className="h-3 w-3" />
+                    <I n="check" className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                   </span>
-                  <span className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ background: f.soft, color: f.color }}>
-                    <I n={f.icon as IconName} className="h-5 w-5" />
+                  <span className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-md sm:rounded-lg" style={{ background: f.soft, color: f.color }}>
+                    <I n={f.icon as IconName} className="h-4 w-4 sm:h-5 sm:w-5" />
                   </span>
-                  <span className="mt-3 flex items-center gap-1.5 font-display text-sm font-extrabold text-ink-900">
+                  <span className="mt-2 sm:mt-3 flex items-center gap-1 sm:gap-1.5 font-display text-xs sm:text-sm font-extrabold text-ink-900">
                     {f.name}
                     {isVideoField(f) && (
-                      <span className="flex items-center gap-0.5 rounded-full bg-coral-soft px-1.5 py-0.5 text-[9px] font-bold text-coral">
-                        <I n="play" className="h-2.5 w-2.5" />
+                      <span className="flex items-center gap-0.5 rounded-full bg-coral-soft px-1 sm:px-1.5 py-0.5 text-[8px] sm:text-[9px] font-bold text-coral">
+                        <I n="play" className="h-2 w-2 sm:h-2.5 sm:w-2.5" />
                         فيديو
                       </span>
                     )}
                   </span>
-                  <span className="mt-1 line-clamp-2 block text-[11px] leading-5 text-ink-400">{f.desc}</span>
+                  <span className="mt-0.5 sm:mt-1 line-clamp-2 block text-[10px] sm:text-[11px] leading-4 sm:leading-5 text-ink-400">{f.desc}</span>
                 </button>
               );
             })}
@@ -314,10 +314,10 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
 
       {/* 02 البيانات */}
       <Step num="02" title="البيانات الأساسية" desc="اسم المشروع وعميله وحالته الحالية">
-        <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+        <div className="grid gap-2 sm:gap-3 lg:gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label className="lbl" htmlFor="p-title">اسم المشروع *</label>
-            <input id="p-title" className="inp font-display !font-bold !text-sm sm:!text-base" placeholder="مثال: منصة نوفا ستور" value={title} onChange={(e) => setTitle(e.target.value)} />
+            <input id="p-title" className="inp font-display !font-bold !text-xs sm:!text-sm lg:!text-base" placeholder="مثال: منصة نوفا ستور" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div>
             <label className="lbl" htmlFor="p-sub">وصف في سطر واحد</label>
@@ -333,13 +333,13 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
           </div>
           <div>
             <span className="lbl">حالة المشروع</span>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {STATUS_OPTIONS.map((s) => (
                 <button
                   key={s.key}
                   type="button"
                   onClick={() => setStatus(s.key)}
-                  className={`btn-press rounded-full border px-4 py-2 text-xs font-bold transition-all duration-200 ${
+                  className={`btn-press rounded-full border px-2.5 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs font-bold transition-all duration-200 ${
                     status === s.key
                       ? "border-ink-900 bg-ink-900 text-card shadow-md"
                       : "border-ink-200 bg-card text-ink-500 hover:border-ink-400"
@@ -355,34 +355,36 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
 
       {/* 03 الصور */}
       <Step num="03" title="الغلاف ومعرض الصور" desc="أضف الصور كروابط مباشرة من Image2URL">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-gold/50 bg-gold-soft/35 px-4 py-3">
-          <p className="flex items-center gap-2 text-[12px] font-bold leading-6 text-ink-600">
-            <I n="link" className="h-4 w-4 shrink-0 text-gold-deep" />
-            الصور تُضاف بروابط مباشرة فقط — ارفعها على Image2URL والصق الـ Direct Link هنا.
+        <div className="mb-3 sm:mb-4 lg:mb-5 flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2 sm:gap-3 rounded-lg sm:rounded-xl border border-dashed border-gold/50 bg-gold-soft/35 px-3 sm:px-4 py-2.5 sm:py-3">
+          <p className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] lg:text-[12px] font-bold leading-5 sm:leading-6 text-ink-600">
+            <I n="link" className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-gold-deep" />
+            <span className="hidden sm:inline">الصور تُضاف بروابط مباشرة فقط — ارفعها على Image2URL والصق الـ Direct Link هنا.</span>
+            <span className="sm:hidden">ارفع الصور على Image2URL والصق الرابط هنا.</span>
           </p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <a
               href={IMAGE_HOST_URL}
               target="_blank"
               rel="noreferrer"
-              className="btn-press rounded-lg bg-ink-900 px-3 py-1.5 text-[11px] font-bold text-card hover:bg-ink-700"
+              className="btn-press rounded-md sm:rounded-lg bg-ink-900 px-2 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-[11px] font-bold text-card hover:bg-ink-700"
             >
-              فتح Image2URL ↗
+              <span className="hidden sm:inline">فتح Image2URL ↗</span>
+              <span className="sm:hidden">Image2URL ↗</span>
             </a>
             <ImageHelpButton />
           </div>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-2">
           <div>
             <span className="lbl">رابط صورة الغلاف</span>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5 sm:gap-2">
               <div className="relative flex-1">
-                <I n="link" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
+                <I n="link" className="absolute start-2.5 sm:start-3.5 top-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 text-ink-300" />
                 <input
                   dir="ltr"
-                  className="inp !ps-10 !text-left"
-                  placeholder="https://www.image2url.com/r2/default/images/…"
+                  className="inp !ps-8 sm:!ps-10 !text-left !text-xs sm:!text-sm"
+                  placeholder="https://www.image2url.com/r2/…"
                   value={coverUrl}
                   onChange={(e) => setCoverUrl(e.target.value)}
                 />
@@ -390,23 +392,23 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
               <button
                 type="button"
                 onClick={setCoverLink}
-                className="btn-press rounded-xl bg-ink-900 px-5 text-xs font-bold text-card hover:bg-ink-700"
+                className="btn-press rounded-lg sm:rounded-xl bg-ink-900 px-3 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold text-card hover:bg-ink-700"
               >
                 تعيين
               </button>
             </div>
-            <p className="mt-1.5 text-[11px] text-ink-400">
+            <p className="mt-1 sm:mt-1.5 text-[10px] sm:text-[11px] text-ink-400">
               انسخ الـ Direct Link من Image2URL بعد الرفع ثم الصقه هنا.
             </p>
           </div>
           <div>
             <span className="lbl">معاينة الغلاف</span>
             {cover ? (
-              <Thumb src={cover} onRemove={() => setCover("")} className="h-44" />
+              <Thumb src={cover} onRemove={() => setCover("")} className="h-32 sm:h-36 lg:h-44" />
             ) : (
-              <div className="flex h-44 items-center justify-center rounded-xl border-2 border-dashed border-ink-200 bg-ink-50/40 text-ink-300">
-                <span className="flex flex-col items-center gap-2 text-xs font-semibold">
-                  <I n="image" className="h-7 w-7" />
+              <div className="flex h-32 sm:h-36 lg:h-44 items-center justify-center rounded-lg sm:rounded-xl border-2 border-dashed border-ink-200 bg-ink-50/40 text-ink-300">
+                <span className="flex flex-col items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-semibold">
+                  <I n="image" className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
                   لم تُضف صورة غلاف بعد
                 </span>
               </div>
@@ -414,15 +416,15 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
           </div>
         </div>
 
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-5 lg:mt-6">
           <span className="lbl">معرض صور المشروع ({images.length})</span>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 sm:gap-2">
             <div className="relative flex-1">
-              <I n="link" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
+              <I n="link" className="absolute start-2.5 sm:start-3.5 top-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 text-ink-300" />
               <input
                 dir="ltr"
-                className="inp !ps-10 !text-left"
-                placeholder="https://www.image2url.com/r2/default/images/…"
+                className="inp !ps-8 sm:!ps-10 !text-left !text-xs sm:!text-sm"
+                placeholder="https://www.image2url.com/r2/…"
                 value={galleryUrl}
                 onChange={(e) => setGalleryUrl(e.target.value)}
               />
@@ -430,19 +432,20 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
             <button
               type="button"
               onClick={addGalleryLink}
-              className="btn-press flex items-center gap-1.5 rounded-xl bg-brand px-5 text-xs font-bold text-card hover:bg-brand-deep"
+              className="btn-press flex items-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl bg-brand px-2.5 sm:px-4 lg:px-5 py-2 sm:py-2.5 text-[10px] sm:text-xs font-bold text-card hover:bg-brand-deep"
             >
-              <I n="plus" className="h-3.5 w-3.5" />
-              إضافة للمعرض
+              <I n="plus" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <span className="hidden sm:inline">إضافة للمعرض</span>
+              <span className="sm:hidden">إضافة</span>
             </button>
           </div>
           {images.length > 0 ? (
             <div>
-              <p className="mt-3 mb-2 flex items-center gap-1.5 text-[11px] font-bold text-ink-400">
-                <I n="sliders" className="h-3.5 w-3.5" />
+              <p className="mt-2 sm:mt-3 mb-1.5 sm:mb-2 flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] font-bold text-ink-400">
+                <I n="sliders" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                 اسحب الصور لتغيير ترتيبها
               </p>
-              <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+              <div className="mt-2 sm:mt-3 grid grid-cols-2 gap-1.5 sm:gap-2 lg:gap-2.5 sm:grid-cols-4">
                 {images.map((im, index) => (
                   <div
                     key={im.id}
@@ -456,24 +459,24 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
                       draggedImageId === im.id ? "opacity-30 scale-95" : ""
                     } ${
                       dragOverImageId === im.id && draggedImageId !== im.id
-                        ? "ring-2 ring-brand ring-offset-2 rounded-xl"
+                        ? "ring-2 ring-brand ring-offset-2 rounded-lg sm:rounded-xl"
                         : ""
                     }`}
                     title="اسحب لتغيير الترتيب"
                   >
                     <Thumb src={im.src} onRemove={() => setImages((prev) => prev.filter((x) => x.id !== im.id))} />
-                    <div className="absolute top-2 start-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink-950/70 text-[10px] font-bold text-card backdrop-blur-sm">
+                    <div className="absolute top-1.5 start-1.5 sm:top-2 sm:start-2 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-ink-950/70 text-[9px] sm:text-[10px] font-bold text-card backdrop-blur-sm">
                       {index + 1}
                     </div>
-                    <div className="absolute top-2 end-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink-950/70 text-card backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100">
-                      <I n="menu" className="h-3.5 w-3.5" />
+                    <div className="absolute top-1.5 end-1.5 sm:top-2 sm:end-2 flex h-5 w-5 sm:h-6 sm:w-6 items-center justify-center rounded-full bg-ink-950/70 text-card backdrop-blur-sm opacity-0 transition-opacity group-hover:opacity-100">
+                      <I n="menu" className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     </div>
                   </div>
                 ))}
               </div>
             </div>
           ) : (
-            <p className="mt-3 rounded-xl border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-[12px] font-semibold text-ink-400">
+            <p className="mt-2 sm:mt-3 rounded-lg sm:rounded-xl border border-dashed border-ink-200 bg-ink-50/40 px-3 sm:px-4 py-3 sm:py-4 lg:py-5 text-center text-[10px] sm:text-[11px] lg:text-[12px] font-semibold text-ink-400">
               أضف أول صورة للصق رابطها — كل صورة تظهر هنا مع زر لنسخ رابطها.
             </p>
           )}
@@ -483,34 +486,33 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
       {/* قسم الفيديو — يظهر فقط للمجالات الفيديوية */}
       {videoDomain && (
         <Step num="04" title="فيديو المشروع" desc="الصق رابط الفيديو وسيُضمَّن كمشغّل داخل المشروع">
-          <div className="grid gap-5 lg:grid-cols-2">
+          <div className="grid gap-3 sm:gap-4 lg:gap-5 lg:grid-cols-2">
             <div>
               <label className="lbl" htmlFor="p-video">رابط الفيديو (iframe)</label>
               <div className="relative">
-                <I n="play" className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-300" />
+                <I n="play" className="absolute start-2.5 sm:start-3.5 top-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 text-ink-300" />
                 <input
                   id="p-video"
                   dir="ltr"
-                  className="inp !ps-10 !text-left !font-mono !text-[12px]"
-                  placeholder="https://www.youtube.com/watch?v=…  أو رابط embed من أي منصة"
+                  className="inp !ps-8 sm:!ps-10 !text-left !font-mono !text-[11px] sm:!text-[12px]"
+                  placeholder="https://www.youtube.com/watch?v=…"
                   value={videoUrl}
                   onChange={(e) => setVideoUrl(e.target.value)}
                 />
               </div>
-              <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-6 text-ink-400">
-                <I n="bulb" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-gold-deep" />
-                يوتيوب (watch أو youtu.be أو shorts) وفيميو وجوجل درايف تتحول تلقائيًا لرابط
-                embed — وأي منصة أخرى الصق رابط الـ embed الخاص بها مباشرة.
+              <p className="mt-1.5 sm:mt-2 flex items-start gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] leading-5 sm:leading-6 text-ink-400">
+                <I n="bulb" className="mt-0.5 h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0 text-gold-deep" />
+                يوتيوب وفيميو وجوجل درايف تتحول تلقائيًا — وأي منصة أخرى الصق رابط الـ embed الخاص بها مباشرة.
               </p>
               {videoInvalid && (
-                <p className="pop mt-2 flex items-center gap-1.5 rounded-lg border border-coral/35 bg-coral-soft/50 px-3 py-2 text-[11px] font-bold text-coral">
-                  <I n="x" className="h-3.5 w-3.5 shrink-0" />
+                <p className="pop mt-1.5 sm:mt-2 flex items-center gap-1 sm:gap-1.5 rounded-md sm:rounded-lg border border-coral/35 bg-coral-soft/50 px-2 sm:px-3 py-1.5 sm:py-2 text-[10px] sm:text-[11px] font-bold text-coral">
+                  <I n="x" className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
                   الرابط غير صالح — يجب أن يبدأ بـ https://
                 </p>
               )}
               {embedPreview && !videoInvalid && (
-                <p className="pop mt-2 flex items-center gap-1.5 text-[11px] font-bold text-brand-deep">
-                  <I n="check" className="h-3.5 w-3.5 shrink-0" />
+                <p className="pop mt-1.5 sm:mt-2 flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] font-bold text-brand-deep">
+                  <I n="check" className="h-3 w-3 sm:h-3.5 sm:w-3.5 shrink-0" />
                   تم التعرف على الرابط — المعاينة الحية بجوار
                 </p>
               )}
@@ -518,7 +520,7 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
             <div>
               <span className="lbl">معاينة حية</span>
               {embedPreview ? (
-                <div className="pop relative aspect-video overflow-hidden rounded-xl border border-line bg-ink-950 shadow-[0_16px_36px_-18px_rgba(11,36,28,0.4)]">
+                <div className="pop relative aspect-video overflow-hidden rounded-lg sm:rounded-xl border border-line bg-ink-950 shadow-[0_10px_25px_-15px_rgba(11,36,28,0.4)] sm:shadow-[0_16px_36px_-18px_rgba(11,36,28,0.4)]">
                   <iframe
                     key={embedPreview}
                     src={embedPreview}
@@ -530,9 +532,9 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
                   />
                 </div>
               ) : (
-                <div className="flex aspect-video flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed border-ink-200 bg-ink-50/40 text-ink-300">
-                  <I n="film" className="h-8 w-8" />
-                  <span className="text-[12px] font-bold">الصق رابطًا صالحًا ليظهر الفيديو هنا فورًا</span>
+                <div className="flex aspect-video flex-col items-center justify-center gap-1.5 sm:gap-2 lg:gap-2.5 rounded-lg sm:rounded-xl border-2 border-dashed border-ink-200 bg-ink-50/40 text-ink-300">
+                  <I n="film" className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8" />
+                  <span className="text-[10px] sm:text-[11px] lg:text-[12px] font-bold text-center px-2">الصق رابطًا صالحًا ليظهر الفيديو هنا فورًا</span>
                 </div>
               )}
             </div>
@@ -542,37 +544,37 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
 
       {/* التفاصيل */}
       <Step num={videoDomain ? "05" : "04"} title="الوصف والتفاصيل" desc="ماذا فعلنا؟ وكيف نفّذنا؟">
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
           <div>
             <label className="lbl" htmlFor="p-desc">وصف المشروع</label>
-            <textarea id="p-desc" className="inp" rows={5} placeholder="ملخص شامل للمشروع ودوره…" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <textarea id="p-desc" className="inp !text-xs sm:!text-sm" rows={4} placeholder="ملخص شامل للمشروع ودوره…" value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
           <div>
             <label className="lbl" htmlFor="p-details">تفاصيل التنفيذ</label>
-            <textarea id="p-details" className="inp" rows={5} placeholder="التقنيات، المنهجية، التحديات وكيف حُلّت…" value={details} onChange={(e) => setDetails(e.target.value)} />
+            <textarea id="p-details" className="inp !text-xs sm:!text-sm" rows={4} placeholder="التقنيات، المنهجية، التحديات وكيف حُلّت…" value={details} onChange={(e) => setDetails(e.target.value)} />
           </div>
         </div>
       </Step>
 
       {/* الأهداف والإنجازات */}
       <Step num={videoDomain ? "06" : "05"} title="الأهداف والإنجازات" desc="ما خططنا له، وما تحقق فعلًا بالأرقام">
-        <div className="grid gap-7 lg:grid-cols-2">
+        <div className="grid gap-4 sm:gap-5 lg:gap-7 lg:grid-cols-2">
           <div>
             <span className="lbl">الأهداف ({goals.length})</span>
-            <div className="flex gap-2">
-              <input className="inp" placeholder="اكتب هدفًا واضغط Enter" value={goalText} onChange={(e) => setGoalText(e.target.value)} onKeyDown={goalKey} />
-              <button type="button" onClick={addGoal} aria-label="إضافة هدف" className="btn-press shrink-0 rounded-xl bg-brand px-4 text-card hover:bg-brand-deep">
-                <I n="plus" className="h-4 w-4" />
+            <div className="flex gap-1.5 sm:gap-2">
+              <input className="inp !text-xs sm:!text-sm" placeholder="اكتب هدفًا واضغط Enter" value={goalText} onChange={(e) => setGoalText(e.target.value)} onKeyDown={goalKey} />
+              <button type="button" onClick={addGoal} aria-label="إضافة هدف" className="btn-press shrink-0 rounded-lg sm:rounded-xl bg-brand px-2.5 sm:px-4 py-2 text-card hover:bg-brand-deep">
+                <I n="plus" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </button>
             </div>
             {goals.length > 0 && (
-              <ul className="mt-3 space-y-2">
+              <ul className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2">
                 {goals.map((g) => (
-                  <li key={g.id} className="pop flex items-center gap-2.5 rounded-lg border border-line bg-card px-3 py-2">
-                    <I n="target" className="h-4 w-4 shrink-0 text-brand" />
-                    <span className="flex-1 text-sm font-semibold text-ink-700">{g.text}</span>
+                  <li key={g.id} className="pop flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 rounded-md sm:rounded-lg border border-line bg-card px-2 sm:px-3 py-1.5 sm:py-2">
+                    <I n="target" className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-brand" />
+                    <span className="flex-1 text-xs sm:text-sm font-semibold text-ink-700">{g.text}</span>
                     <button type="button" onClick={() => setGoals((prev) => prev.filter((x) => x.id !== g.id))} aria-label="حذف الهدف" className="btn-press text-ink-300 hover:text-coral">
-                      <I n="trash" className="h-4 w-4" />
+                      <I n="trash" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                   </li>
                 ))}
@@ -581,22 +583,22 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
           </div>
           <div>
             <span className="lbl">الإنجازات المحققة ({achievements.length})</span>
-            <div className="flex gap-2">
-              <input className="inp !w-24 shrink-0 text-center font-mono font-bold" placeholder="+38%" value={achMetric} onChange={(e) => setAchMetric(e.target.value)} aria-label="الرقم المميز للإنجاز" />
-              <input className="inp" placeholder="وصف الإنجاز ثم Enter" value={achText} onChange={(e) => setAchText(e.target.value)} onKeyDown={achKey} />
-              <button type="button" onClick={addAchievement} aria-label="إضافة إنجاز" className="btn-press shrink-0 rounded-xl bg-gold px-4 text-ink-950 hover:brightness-105">
-                <I n="plus" className="h-4 w-4" />
+            <div className="flex gap-1.5 sm:gap-2">
+              <input className="inp !w-16 sm:!w-20 lg:!w-24 shrink-0 text-center font-mono font-bold !text-xs sm:!text-sm" placeholder="+38%" value={achMetric} onChange={(e) => setAchMetric(e.target.value)} aria-label="الرقم المميز للإنجاز" />
+              <input className="inp !text-xs sm:!text-sm" placeholder="وصف الإنجاز ثم Enter" value={achText} onChange={(e) => setAchText(e.target.value)} onKeyDown={achKey} />
+              <button type="button" onClick={addAchievement} aria-label="إضافة إنجاز" className="btn-press shrink-0 rounded-lg sm:rounded-xl bg-gold px-2.5 sm:px-4 py-2 text-ink-950 hover:brightness-105">
+                <I n="plus" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </button>
             </div>
             {achievements.length > 0 && (
-              <ul className="mt-3 space-y-2">
+              <ul className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2">
                 {achievements.map((a) => (
-                  <li key={a.id} className="pop flex items-center gap-2.5 rounded-lg border border-gold/30 bg-gold-soft/35 px-3 py-2">
-                    <I n="trophy" className="h-4 w-4 shrink-0 text-gold-deep" />
-                    <span className="w-14 shrink-0 font-mono text-sm font-bold text-ink-900">{a.metric}</span>
-                    <span className="flex-1 truncate text-sm text-ink-600">{a.text}</span>
+                  <li key={a.id} className="pop flex items-center gap-1.5 sm:gap-2 lg:gap-2.5 rounded-md sm:rounded-lg border border-gold/30 bg-gold-soft/35 px-2 sm:px-3 py-1.5 sm:py-2">
+                    <I n="trophy" className="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0 text-gold-deep" />
+                    <span className="w-12 sm:w-14 shrink-0 font-mono text-xs sm:text-sm font-bold text-ink-900">{a.metric}</span>
+                    <span className="flex-1 truncate text-xs sm:text-sm text-ink-600">{a.text}</span>
                     <button type="button" onClick={() => setAchievements((prev) => prev.filter((x) => x.id !== a.id))} aria-label="حذف الإنجاز" className="btn-press text-ink-300 hover:text-coral">
-                      <I n="trash" className="h-4 w-4" />
+                      <I n="trash" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                   </li>
                 ))}
@@ -608,10 +610,11 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
 
       {/* الروابط والملحقات */}
       <Step num={videoDomain ? "07" : "06"} title="الروابط والملحقات" desc="ديمو، كود، تصميم، وأي روابط متعلقة بالمشروع">
-        <div className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-[180px_1fr_1fr_auto]">
+        <div className="space-y-3 sm:space-y-4">
+          {/* Form - يتحول لعمود واحد على الموبايل */}
+          <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-[160px_1fr] lg:grid-cols-[180px_1fr_1fr_auto]">
             <select
-              className="inp"
+              className="inp !text-xs sm:!text-sm"
               value={linkType}
               onChange={(e) => setLinkType(e.target.value as ProjectLink["type"])}
               aria-label="نوع الرابط"
@@ -622,14 +625,14 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
               <option value="other">🔗 رابط آخر</option>
             </select>
             <input
-              className="inp"
+              className="inp !text-xs sm:!text-sm sm:col-span-1 lg:col-span-1"
               placeholder="الاسم (مثال: الموقع الرسمي)"
               value={linkLabel}
               onChange={(e) => setLinkLabel(e.target.value)}
             />
             <input
               dir="ltr"
-              className="inp !text-left"
+              className="inp !text-left !text-xs sm:!text-sm sm:col-span-2 lg:col-span-1"
               placeholder="https://example.com"
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
@@ -658,15 +661,15 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
                 setLinkUrl("");
                 toast("تمت إضافة الرابط");
               }}
-              className="btn-press flex items-center justify-center gap-1.5 rounded-xl bg-brand px-4 text-sm font-bold text-card hover:bg-brand-deep"
+              className="btn-press flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl bg-brand px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-card hover:bg-brand-deep sm:col-span-2 lg:col-span-1"
             >
-              <I n="plus" className="h-4 w-4" />
+              <I n="plus" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               إضافة
             </button>
           </div>
 
           {links.length > 0 ? (
-            <ul className="space-y-2">
+            <ul className="space-y-1.5 sm:space-y-2">
               {links.map((l) => {
                 const iconMap: Record<ProjectLink["type"], IconName> = {
                   demo: "demo",
@@ -683,29 +686,29 @@ export default function ProjectForm({ id, go }: { id?: string; go: (v: View) => 
                 return (
                   <li
                     key={l.id}
-                    className="pop flex items-center gap-3 rounded-xl border border-line bg-card px-4 py-3 transition-all duration-200 hover:border-brand/40 hover:shadow-sm"
+                    className="pop flex items-center gap-2 sm:gap-3 rounded-md sm:rounded-xl border border-line bg-card px-2.5 sm:px-4 py-2 sm:py-3 transition-all duration-200 hover:border-brand/40 hover:shadow-sm"
                   >
-                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${colorMap[l.type]}`}>
-                      <I n={iconMap[l.type]} className="h-4.5 w-4.5" />
+                    <span className={`flex h-7 w-7 sm:h-8 sm:w-8 lg:h-9 lg:w-9 shrink-0 items-center justify-center rounded-md sm:rounded-lg ${colorMap[l.type]}`}>
+                      <I n={iconMap[l.type]} className="h-3.5 w-3.5 sm:h-4 sm:w-4 lg:h-4.5 lg:w-4.5" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-display text-[13px] font-bold text-ink-800">{l.label}</p>
-                      <p dir="ltr" className="truncate text-[11px] text-ink-400">{l.url}</p>
+                      <p className="truncate font-display text-xs sm:text-[13px] font-bold text-ink-800">{l.label}</p>
+                      <p dir="ltr" className="truncate text-[10px] sm:text-[11px] text-ink-400">{l.url}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => setLinks(links.filter((x) => x.id !== l.id))}
                       aria-label="حذف الرابط"
-                      className="btn-press rounded-lg p-2 text-ink-300 transition-colors hover:bg-coral-soft hover:text-coral"
+                      className="btn-press rounded-md sm:rounded-lg p-1.5 sm:p-2 text-ink-300 transition-colors hover:bg-coral-soft hover:text-coral"
                     >
-                      <I n="trash" className="h-4 w-4" />
+                      <I n="trash" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                   </li>
                 );
               })}
             </ul>
           ) : (
-            <p className="rounded-xl border border-dashed border-ink-200 bg-ink-50/40 px-4 py-5 text-center text-[12px] font-semibold text-ink-400">
+            <p className="rounded-lg sm:rounded-xl border border-dashed border-ink-200 bg-ink-50/40 px-3 sm:px-4 py-3 sm:py-4 lg:py-5 text-center text-[10px] sm:text-[11px] lg:text-[12px] font-semibold text-ink-400">
               لم تُضف روابط بعد — أضف رابط الديمو أو الكود أو التصميم
             </p>
           )}
