@@ -45,23 +45,13 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Overlay - يظهر فقط على الموبايل والتابلت */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-ink-950/60 backdrop-blur-[2px] lg:hidden"
-          onClick={onClose}
-          aria-label="إغلاق القائمة"
-        />
-      )}
-      
-      {/* السايدبار - على اليمين في كل الشاشات */}
+      {/* السايدبار على اليمين - الشاشات الكبيرة فقط */}
       <aside
         className={`
-          fixed top-0 end-0 z-50 flex flex-col bg-ink-950 text-ink-200 h-screen
+          hidden lg:flex fixed top-0 end-0 z-50 flex-col bg-ink-950 text-ink-200 h-screen
           transition-all duration-300 ease-out
-          ${open ? "translate-x-0" : "translate-x-full"}
-          lg:sticky lg:translate-x-0
-          ${collapsed ? "w-[72px] lg:w-[72px]" : "w-[280px] lg:w-[276px]"}
+          lg:sticky lg:top-0 lg:z-20
+          ${collapsed ? "lg:w-[72px]" : "lg:w-[276px]"}
         `}
         style={{
           backgroundImage:
@@ -80,13 +70,10 @@ export default function Sidebar({
               <p className="mt-1.5 font-mono text-[10px] font-semibold tracking-[0.3em] text-gold">DUBLEX · OPS</p>
             </div>
           )}
-          <button className="btn-press text-ink-400 hover:text-card md:hidden" onClick={onClose} aria-label="إغلاق">
-            <I n="x" className="h-5 w-5" />
-          </button>
         </div>
 
         {/* الأقسام */}
-        <nav className={`flex-1 overflow-y-auto ${collapsed ? "md:px-2 lg:px-2" : "px-4"}`}>
+        <nav className={`flex-1 overflow-y-auto ${collapsed ? "lg:px-2" : "px-4"}`}>
           {!collapsed && (
             <p className="mb-3 px-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
               الأقسام / SECTIONS
@@ -98,16 +85,10 @@ export default function Sidebar({
               return (
                 <li key={it.key}>
                   <button
-                    onClick={() => {
-                      go({ name: it.key });
-                      // على الموبايل والتابلت، اقفل السايدبار بعد الضغط
-                      if (window.innerWidth < 1024) {
-                        onClose();
-                      }
-                    }}
+                    onClick={() => go({ name: it.key })}
                     title={collapsed ? it.label : undefined}
                     className={`btn-press group relative flex w-full items-center gap-3 rounded-xl transition-all duration-200 ${
-                      collapsed ? "md:justify-center lg:justify-center md:px-2 lg:px-2 py-3" : "px-3.5 py-3"
+                      collapsed ? "lg:justify-center lg:px-2 py-3" : "px-3.5 py-3"
                     } ${
                       active
                         ? "bg-ink-800/90 text-card shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
@@ -144,37 +125,29 @@ export default function Sidebar({
           </ul>
 
           {/* إجراءات سريعة */}
-          <div className={collapsed ? "hidden lg:block" : ""}>
-            {!collapsed && (
-              <>
-                <p className="mb-3 mt-8 px-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
-                  إجراءات / ACTIONS
-                </p>
-                <button
-                  onClick={() => {
-                    go({ name: "project-form" });
-                    if (window.innerWidth < 1024) onClose();
-                  }}
-                  className="btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-4 py-3 font-display text-sm font-extrabold text-ink-950 shadow-lg shadow-gold/15 hover:brightness-110"
-                >
-                  <I n="plus" className="h-4 w-4" />
-                  إضافة مشروع جديد
-                </button>
-                <button
-                  onClick={() => {
-                    go({ name: "article-form" });
-                    if (window.innerWidth < 1024) onClose();
-                  }}
-                  className="btn-press mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700 px-4 py-2.5 text-sm font-semibold text-ink-200 transition-colors hover:border-gold/60 hover:text-gold"
-                >
-                  <I n="pen" className="h-4 w-4" />
-                  مقال جديد
-                </button>
-              </>
-            )}
-          </div>
+          {!collapsed && (
+            <>
+              <p className="mb-3 mt-8 px-2 font-mono text-[10px] font-semibold tracking-[0.25em] text-ink-500">
+                إجراءات / ACTIONS
+              </p>
+              <button
+                onClick={() => go({ name: "project-form" })}
+                className="btn-press flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-4 py-3 font-display text-sm font-extrabold text-ink-950 shadow-lg shadow-gold/15 hover:brightness-110"
+              >
+                <I n="plus" className="h-4 w-4" />
+                إضافة مشروع جديد
+              </button>
+              <button
+                onClick={() => go({ name: "article-form" })}
+                className="btn-press mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-ink-700 px-4 py-2.5 text-sm font-semibold text-ink-200 transition-colors hover:border-gold/60 hover:text-gold"
+              >
+                <I n="pen" className="h-4 w-4" />
+                مقال جديد
+              </button>
+            </>
+          )}
           {collapsed && (
-            <div className="mt-6 hidden space-y-2 lg:block">
+            <div className="mt-6 space-y-2">
               <button
                 onClick={() => go({ name: "project-form" })}
                 title="إضافة مشروع جديد"
@@ -193,8 +166,8 @@ export default function Sidebar({
           )}
         </nav>
 
-        {/* زر الطي - يظهر فقط على الشاشات الكبيرة */}
-        <div className={`hidden px-4 pb-2 lg:block ${collapsed ? "lg:px-2" : ""}`}>
+        {/* زر الطي */}
+        <div className={`px-4 pb-2 ${collapsed ? "lg:px-2" : ""}`}>
           <button
             onClick={onToggleCollapse}
             title={collapsed ? "إظهار السايدبار" : "طي السايدبار"}
@@ -206,7 +179,7 @@ export default function Sidebar({
         </div>
 
         {/* حالة المزامنة */}
-        <div className={`pb-4 ${collapsed ? "px-2" : "px-4"}`}>
+        <div className={`pb-4 ${collapsed ? "lg:px-2" : "px-4"}`}>
           <button
             onClick={onCloud}
             title={collapsed ? syncMeta.label : undefined}
@@ -245,6 +218,49 @@ export default function Sidebar({
           )}
         </div>
       </aside>
+
+      {/* Bottom Navigation - الشاشات المتوسطة والصغيرة */}
+      <nav className="fixed bottom-0 start-0 end-0 z-50 bg-ink-950 border-t border-ink-700 lg:hidden">
+        <div className="flex items-center justify-around h-16 px-2">
+          {items.map((it) => {
+            const active = isActive(it.key);
+            return (
+              <button
+                key={it.key}
+                onClick={() => go({ name: it.key })}
+                className={`btn-press flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
+                  active ? "text-gold" : "text-ink-400"
+                }`}
+              >
+                <span className={active ? "text-gold" : "text-ink-400"}>
+                  <I n={it.icon} className="h-6 w-6" />
+                </span>
+                {/* الشاشات المتوسطة: إظهار النصوص */}
+                <span className="text-[10px] font-semibold md:block hidden">
+                  {it.label}
+                </span>
+                {/* الشاشات الصغيرة: إظهار العداد فقط */}
+                {typeof it.count === "number" && (
+                  <span className={`text-[9px] font-bold rounded-full px-1.5 py-0.5 ${
+                    active ? "bg-gold text-ink-950" : "bg-ink-800 text-ink-400"
+                  } md:hidden`}>
+                    {it.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+          {/* زر الإعدادات */}
+          <button
+            onClick={onCloud}
+            className="btn-press flex flex-col items-center justify-center gap-1 flex-1 h-full text-ink-400 hover:text-gold transition-colors"
+          >
+            <I n="cloud" className="h-6 w-6" />
+            <span className="text-[10px] font-semibold md:block hidden">الإعدادات</span>
+            <span className={`h-2 w-2 rounded-full ${syncMeta.dot} md:hidden`} />
+          </button>
+        </div>
+      </nav>
     </>
   );
 }
