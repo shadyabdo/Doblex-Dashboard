@@ -496,3 +496,51 @@ export function SyncBadge({ onClick }: { onClick?: () => void }) {
     </button>
   );
 }
+
+/* مكون الأكورديون */
+export function Accordion({
+  items,
+  className = "",
+}: {
+  items: { id: string; title: string; content: string }[];
+  className?: string;
+}) {
+  const [openId, setOpenId] = useState<string | null>(null);
+
+  return (
+    <div className={`space-y-2 ${className}`}>
+      {items.map((item) => {
+        const isOpen = openId === item.id;
+        return (
+          <div
+            key={item.id}
+            className="rounded-xl border border-line bg-card overflow-hidden transition-all duration-200"
+          >
+            <button
+              onClick={() => setOpenId(isOpen ? null : item.id)}
+              className="btn-press flex w-full items-center justify-between gap-3 px-4 py-3 text-start hover:bg-ink-50"
+            >
+              <span className="font-display text-sm font-bold text-ink-800">{item.title}</span>
+              <span
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all duration-200 ${
+                  isOpen ? "bg-brand text-card rotate-180" : "bg-ink-100 text-ink-500"
+                }`}
+              >
+                <I n="arrow" className="h-4 w-4 rotate-90" />
+              </span>
+            </button>
+            <div
+              className={`grid transition-all duration-300 ease-in-out ${
+                isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="px-4 pb-4 text-sm leading-7 text-ink-600">{item.content}</div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

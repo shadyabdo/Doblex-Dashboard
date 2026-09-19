@@ -45,6 +45,8 @@ function normalizeDb(d: Db): Db {
         ? (a.publishedAt ?? a.createdAt ?? null)
         : (a.publishedAt ?? null),
       views: a.views ?? 0,
+      faqs: a.faqs ?? [],
+      comparisons: a.comparisons ?? [],
     })),
   };
 }

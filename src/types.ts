@@ -79,6 +79,20 @@ export interface Project {
   createdAt: number;
 }
 
+export interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export interface Comparison {
+  id: string;
+  title: string;
+  item1: string;
+  item2: string;
+  differences: string[];
+}
+
 export interface Article {
   id: string;
   title: string;
@@ -95,6 +109,10 @@ export interface Article {
   publishedAt: number | null;
   /** عدد مشاهدات صفحة المدونة — يقرأه ويزوده الموقع الرئيسي من Firestore */
   views?: number;
+  /** الأسئلة الشائعة */
+  faqs?: FAQ[];
+  /** المقارنات */
+  comparisons?: Comparison[];
   readMins: number;
   createdAt: number;
 }
