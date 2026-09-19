@@ -3,7 +3,7 @@ import { useStore } from "../store";
 import { I } from "../icons";
 import { ChipInput, Overline, Switch, Thumb, Ticks } from "../components/ui";
 import { ImageHelpButton } from "../imageHelp";
-import { formatDate, toTags, type View } from "../types";
+import { formatDate, toTags, type Comparison, type FAQ, type View } from "../types";
 
 export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => void }) {
   const { db, addArticle, updateArticle, toast } = useStore();
@@ -18,6 +18,19 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
   const [coverUrl, setCoverUrl] = useState("");
   const [published, setPublished] = useState(editing?.published ?? true);
   const [saving, setSaving] = useState(false);
+
+  // FAQ states
+  const [faqs, setFaqs] = useState<FAQ[]>(editing?.faqs ?? []);
+  const [faqQuestion, setFaqQuestion] = useState("");
+  const [faqAnswer, setFaqAnswer] = useState("");
+
+  // Comparison states
+  const [comparisons, setComparisons] = useState<Comparison[]>(editing?.comparisons ?? []);
+  const [compTitle, setCompTitle] = useState("");
+  const [compItem1, setCompItem1] = useState("");
+  const [compItem2, setCompItem2] = useState("");
+  const [compDifferences, setCompDifferences] = useState<string[]>([]);
+  const [compDiffInput, setCompDiffInput] = useState("");
   const setCoverLink = () => {
     const v = coverUrl.trim();
     if (!v) {
@@ -31,6 +44,53 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
     setCover(v);
     setCoverUrl("");
     toast("تم تعيين صورة المقال كرابط مباشر");
+  };
+
+  // FAQ functions
+  const addFaq = () => {
+    if (!faqQuestion.trim() || !faqAnswer.trim()) {
+      toast("اكتب السؤال والإجابة", "error");
+      return;
+    }
+    setFaqs([...faqs, { id: Math.random().toString(36).slice(2), question: faqQuestion.trim(), answer: faqAnswer.trim() }]);
+    setFaqQuestion("");
+    setFaqAnswer("");
+    toast("تمت إضافة السؤال");
+  };
+
+  const removeFaq = (id: string) => {
+    setFaqs(faqs.filter((f) => f.id !== id));
+  };
+
+  // Comparison functions
+  const addComparison = () => {
+    if (!compTitle.trim() || !compItem1.trim() || !compItem2.trim()) {
+      toast("املأ العنوان والعنصرين", "error");
+      return;
+    }
+    setComparisons([
+      ...comparisons,
+      { id: Math.random().toString(36).slice(2), title: compTitle.trim(), item1: compItem1.trim(), item2: compItem2.trim(), differences: compDifferences },
+    ]);
+    setCompTitle("");
+    setCompItem1("");
+    setCompItem2("");
+    setCompDifferences([]);
+    toast("تمت إضافة المقارنة");
+  };
+
+  const removeComparison = (id: string) => {
+    setComparisons(comparisons.filter((c) => c.id !== id));
+  };
+
+  const addDifference = () => {
+    if (!compDiffInput.trim()) return;
+    setCompDifferences([...compDifferences, compDiffInput.trim()]);
+    setCompDiffInput("");
+  };
+
+  const removeDifference = (index: number) => {
+    setCompDifferences(compDifferences.filter((_, i) => i !== index));
   };
 
   const save = (e: FormEvent) => {
@@ -56,6 +116,8 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
       body: body.trim(),
       cover,
       published,
+      faqs,
+      comparisons,
     };
     window.setTimeout(() => {
       if (editing) {
@@ -110,6 +172,211 @@ export default function ArticleForm({ id, go }: { id?: string; go: (v: View) => 
                   {body.trim() ? `${body.trim().split(/\s+/).length} كلمة تقريبًا` : "ابدأ الكتابة…"}
                 </p>
               </div>
+            </div>
+          </section>
+
+          {/* الأسئلة الشائعة */}
+          <section className="relative rounded-xl border border-line bg-card p-4 sm:p-5 lg:p-7 shadow-sm">
+            <Ticks className="text-ink-200" />
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <I n="bulb" className="h-5 w-5 text-gold-deep" />
+                <h3 className="font-display text-base sm:text-lg font-extrabold text-ink-900">الأسئلة الشائعة</h3>
+              </div>
+              <p className="text-xs sm:text-sm text-ink-500">أضف أسئلة شائعة مع إجاباتها — ستظهر كأكورديون في المقال</p>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="lbl">السؤال</label>
+                  <input
+                    className="inp !text-xs sm:!text-sm"
+                    placeholder="ما هو معدل التحويل؟"
+                    value={faqQuestion}
+                    onChange={(e) => setFaqQuestion(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="lbl">الإجابة</label>
+                  <textarea
+                    className="inp !text-xs sm:!text-sm"
+                    rows={3}
+                    placeholder="معدل التحويل هو نسبة الزوار الذين يقومون بإجراء مرغوب..."
+                    value={faqAnswer}
+                    onChange={(e) => setFaqAnswer(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={addFaq}
+                  className="btn-press flex items-center gap-2 rounded-lg sm:rounded-xl bg-brand px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-card hover:bg-brand-deep"
+                >
+                  <I n="plus" className="h-4 w-4" />
+                  إضافة سؤال
+                </button>
+              </div>
+
+              {faqs.length > 0 && (
+                <div className="space-y-2">
+                  {faqs.map((faq, index) => (
+                    <div key={faq.id} className="pop flex items-start gap-2 sm:gap-3 rounded-lg sm:rounded-xl border border-line bg-ink-50/50 p-3 sm:p-4">
+                      <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand font-mono text-xs sm:text-sm font-bold">
+                        {index + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-display text-xs sm:text-sm font-bold text-ink-800">{faq.question}</p>
+                        <p className="mt-1 text-[11px] sm:text-xs text-ink-500 line-clamp-2">{faq.answer}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFaq(faq.id)}
+                        className="btn-press shrink-0 rounded-lg p-1.5 sm:p-2 text-ink-400 hover:bg-coral-soft hover:text-coral"
+                      >
+                        <I n="trash" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* المقارنات */}
+          <section className="relative rounded-xl border border-line bg-card p-4 sm:p-5 lg:p-7 shadow-sm">
+            <Ticks className="text-ink-200" />
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <I n="sliders" className="h-5 w-5 text-sea" />
+                <h3 className="font-display text-base sm:text-lg font-extrabold text-ink-900">المقارنات</h3>
+              </div>
+              <p className="text-xs sm:text-sm text-ink-500">أضف مقارنات بين عنصرين مع الفروقات — ستظهر كجداول في المقال</p>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="lbl">عنوان المقارنة</label>
+                  <input
+                    className="inp !text-xs sm:!text-sm"
+                    placeholder="React vs Vue"
+                    value={compTitle}
+                    onChange={(e) => setCompTitle(e.target.value)}
+                  />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="lbl">العنصر الأول</label>
+                    <input
+                      className="inp !text-xs sm:!text-sm"
+                      placeholder="React"
+                      value={compItem1}
+                      onChange={(e) => setCompItem1(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="lbl">العنصر الثاني</label>
+                    <input
+                      className="inp !text-xs sm:!text-sm"
+                      placeholder="Vue"
+                      value={compItem2}
+                      onChange={(e) => setCompItem2(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="lbl">الفروقات</label>
+                  <div className="flex gap-2">
+                    <input
+                      className="inp !text-xs sm:!text-sm flex-1"
+                      placeholder="منحنى التعلم"
+                      value={compDiffInput}
+                      onChange={(e) => setCompDiffInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          addDifference();
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={addDifference}
+                      className="btn-press shrink-0 rounded-lg sm:rounded-xl bg-sea px-3 sm:px-4 py-2 text-card hover:bg-sea/90"
+                    >
+                      <I n="plus" className="h-4 w-4" />
+                    </button>
+                  </div>
+                  {compDifferences.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-1.5 sm:gap-2">
+                      {compDifferences.map((diff, index) => (
+                        <span
+                          key={index}
+                          className="pop flex items-center gap-1 sm:gap-1.5 rounded-full bg-sea-soft px-2 sm:px-3 py-1 text-[10px] sm:text-xs font-bold text-sea"
+                        >
+                          {diff}
+                          <button
+                            type="button"
+                            onClick={() => removeDifference(index)}
+                            className="btn-press hover:text-coral"
+                          >
+                            <I n="x" className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={addComparison}
+                  className="btn-press flex items-center gap-2 rounded-lg sm:rounded-xl bg-sea px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-card hover:bg-sea/90"
+                >
+                  <I n="plus" className="h-4 w-4" />
+                  إضافة مقارنة
+                </button>
+              </div>
+
+              {comparisons.length > 0 && (
+                <div className="space-y-2">
+                  {comparisons.map((comp, index) => (
+                    <div key={comp.id} className="pop rounded-lg sm:rounded-xl border border-line bg-ink-50/50 p-3 sm:p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-full bg-sea-soft text-sea font-mono text-xs sm:text-sm font-bold">
+                              {index + 1}
+                            </span>
+                            <p className="font-display text-xs sm:text-sm font-bold text-ink-800">{comp.title}</p>
+                          </div>
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+                            <span className="rounded-md bg-brand-soft px-2 py-0.5 font-bold text-brand-deep">{comp.item1}</span>
+                            <span className="text-ink-400">vs</span>
+                            <span className="rounded-md bg-gold-soft px-2 py-0.5 font-bold text-gold-deep">{comp.item2}</span>
+                          </div>
+                          {comp.differences.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {comp.differences.slice(0, 3).map((diff, i) => (
+                                <span key={i} className="rounded-full bg-ink-100 px-2 py-0.5 text-[9px] sm:text-[10px] text-ink-600">
+                                  {diff}
+                                </span>
+                              ))}
+                              {comp.differences.length > 3 && (
+                                <span className="rounded-full bg-ink-100 px-2 py-0.5 text-[9px] sm:text-[10px] text-ink-600">
+                                  +{comp.differences.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeComparison(comp.id)}
+                          className="btn-press shrink-0 rounded-lg p-1.5 sm:p-2 text-ink-400 hover:bg-coral-soft hover:text-coral"
+                        >
+                          <I n="trash" className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         </div>

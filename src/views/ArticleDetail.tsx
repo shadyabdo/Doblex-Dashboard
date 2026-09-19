@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../store";
 import { I } from "../icons";
-import { Overline, Reveal, Ticks } from "../components/ui";
+import { Accordion, Overline, Reveal, Ticks } from "../components/ui";
 import { formatDate, type View } from "../types";
 
 export default function ArticleDetail({ id, go }: { id: string; go: (v: View) => void }) {
@@ -184,6 +184,70 @@ export default function ArticleDetail({ id, go }: { id: string; go: (v: View) =>
                 >
                   #{tag}
                 </span>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      )}
+
+      {/* FAQ - الأسئلة الشائعة */}
+      {article.faqs && article.faqs.length > 0 && (
+        <Reveal delay={325}>
+          <div className="rounded-xl border border-line bg-card p-4 sm:p-5 lg:p-6">
+            <Overline>الأسئلة الشائعة</Overline>
+            <div className="mt-3 sm:mt-4">
+              <Accordion
+                items={article.faqs.map((faq) => ({
+                  id: faq.id,
+                  title: faq.question,
+                  content: faq.answer,
+                }))}
+              />
+            </div>
+          </div>
+        </Reveal>
+      )}
+
+      {/* Comparisons - المقارنات */}
+      {article.comparisons && article.comparisons.length > 0 && (
+        <Reveal delay={350}>
+          <div className="rounded-xl border border-line bg-card p-4 sm:p-5 lg:p-6">
+            <Overline>المقارنات</Overline>
+            <div className="mt-3 sm:mt-4 space-y-4">
+              {article.comparisons.map((comp) => (
+                <div key={comp.id} className="rounded-xl border border-line bg-ink-50/50 p-3 sm:p-4">
+                  <h4 className="font-display text-sm sm:text-base font-extrabold text-ink-900 mb-3">
+                    {comp.title}
+                  </h4>
+                  <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+                    <div className="rounded-lg bg-brand-soft/50 p-3 sm:p-4">
+                      <p className="font-display text-xs sm:text-sm font-bold text-brand-deep mb-2">
+                        {comp.item1}
+                      </p>
+                      <ul className="space-y-1">
+                        {comp.differences.map((diff, i) => (
+                          <li key={i} className="flex items-start gap-1.5 text-[11px] sm:text-xs text-ink-600">
+                            <span className="mt-1 h-1 w-1 rounded-full bg-brand shrink-0" />
+                            <span>{diff}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="rounded-lg bg-gold-soft/50 p-3 sm:p-4">
+                      <p className="font-display text-xs sm:text-sm font-bold text-gold-deep mb-2">
+                        {comp.item2}
+                      </p>
+                      <ul className="space-y-1">
+                        {comp.differences.map((diff, i) => (
+                          <li key={i} className="flex items-start gap-1.5 text-[11px] sm:text-xs text-ink-600">
+                            <span className="mt-1 h-1 w-1 rounded-full bg-gold shrink-0" />
+                            <span>{diff}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
